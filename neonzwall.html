@@ -3,198 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Wall - Responsive Studio</title>
+    <title>The Wall: Dual Duel</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto+Mono:wght@400;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap');
 
         :root {
             --neon-blue: #00f3ff;
+            --neon-pink: #bc13fe;
             --neon-green: #39ff14;
             --neon-red: #ff003c;
-            --gold: #ffd700;
-            --bg-dark: #050505;
-            --panel-bg: rgba(15, 20, 30, 0.95);
+            --glass-bg: rgba(10, 15, 25, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
             margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
+            background-color: #050505;
             color: white;
-            font-family: 'Orbitron', sans-serif;
-            overflow: hidden; 
+            font-family: 'Rajdhani', sans-serif;
+            overflow: hidden;
             height: 100vh;
             width: 100vw;
             display: flex;
         }
 
-        #app-container {
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 100;
             display: flex;
-            width: 100%;
-            height: 100%;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: opacity 0.5s;
+        }
+        #start-screen.hidden { opacity: 0; pointer-events: none; }
+
+        .modal-box {
+            background: var(--glass-bg);
+            border: 1px solid var(--neon-blue);
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 243, 255, 0.2);
+            max-width: 400px;
+            width: 90%;
         }
 
+        .modal-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 40px;
+            margin-bottom: 30px;
+            background: linear-gradient(to right, var(--neon-blue), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .input-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; color: #888; font-size: 14px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px;}
+        input[type="text"] {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #333;
+            color: white;
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 18px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+        input[type="text"]:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0,243,255,0.2); }
+
+        .start-btn {
+            background: linear-gradient(45deg, var(--neon-blue), #0055ff);
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            clip-path: polygon(10% 0, 100% 0, 100% 70%, 90% 100%, 0 100%, 0 30%);
+            transition: 0.2s;
+        }
+        .start-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+
         #game-stage {
-            flex: 1; /* Takes all remaining space */
+            flex: 1;
             position: relative;
             background: radial-gradient(circle at center, #1a2233 0%, #000 90%);
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-right: 2px solid #333;
         }
 
-        canvas {
-            display: block;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+        canvas { box-shadow: 0 0 100px rgba(0,0,0,0.8); }
+
+        #hud-layer {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px; bottom: 20px;
+            pointer-events: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
 
+        .player-card {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #333;
+            padding: 15px 25px;
+            min-width: 200px;
+            border-radius: 4px;
+            border-top: 4px solid #444;
+            transition: all 0.3s;
+        }
+        .player-card.active {
+            background: rgba(0, 243, 255, 0.1);
+            border-top: 4px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            transform: scale(1.05);
+        }
+        .player-card.p2.active {
+            border-top: 4px solid var(--neon-pink);
+            background: rgba(188, 19, 254, 0.1);
+            box-shadow: 0 0 30px rgba(188, 19, 254, 0.1);
+        }
+
+        .p-name { font-family: 'Orbitron'; font-size: 14px; color: #aaa; letter-spacing: 2px; margin-bottom: 5px; }
+        .p-score { font-family: 'Orbitron'; font-size: 32px; font-weight: 900; }
+        .p1 .p-score { color: var(--neon-blue); }
+        .p2 .p-score { color: var(--neon-pink); }
+
+        #turn-indicator {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Orbitron';
+            font-size: 48px;
+            font-weight: 900;
+            text-shadow: 0 0 20px black;
+            opacity: 0;
+            transition: opacity 0.5s;
+            text-transform: uppercase;
+        }
 
         #control-panel {
-            width: 380px;
-            min-width: 350px;
-            background: var(--panel-bg);
+            width: 350px;
+            background: var(--glass-bg);
+            border-left: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
             padding: 20px;
-            gap: 15px;
+            gap: 20px;
             z-index: 10;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
-            overflow-y: auto; 
+            backdrop-filter: blur(15px);
         }
 
-        h1 {
+        .panel-header {
             text-align: center;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            margin: 0 0 10px 0;
-            font-size: 28px;
-            text-shadow: 0 0 15px var(--neon-blue);
             border-bottom: 1px solid #333;
             padding-bottom: 15px;
         }
+        .panel-header h2 { margin: 0; font-family: 'Orbitron'; font-size: 24px; color: white; }
 
-        .bank-display {
-            background: black;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-            box-shadow: inset 0 0 20px rgba(0, 243, 255, 0.05);
-            flex-shrink: 0;
-        }
-        .bank-label { font-size: 11px; color: #888; letter-spacing: 2px; font-family: 'Roboto Mono', monospace; }
-        .bank-value { 
-            font-size: 42px; font-weight: 900; color: white; margin-top: 5px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.3);
-        }
-
-        .control-box {
+        .control-section {
             background: rgba(255,255,255,0.03);
             border: 1px solid #333;
-            border-radius: 6px;
             padding: 15px;
-            flex-shrink: 0;
+            border-radius: 6px;
         }
-        .box-title {
-            font-size: 12px; color: var(--neon-blue); margin-bottom: 10px; display: flex; justify-content: space-between;
-        }
+        .section-title { font-size: 12px; color: #888; letter-spacing: 1px; margin-bottom: 10px; display: flex; justify-content: space-between; text-transform: uppercase;}
 
-        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
         .slot-btn {
-            background: #111; border: 1px solid #444; color: #666;
+            background: #111; border: 1px solid #444; color: #555;
             aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; border-radius: 4px; font-weight: bold; font-size: 14px;
-            transition: all 0.2s;
+            cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
+            transition: 0.2s;
         }
-        .slot-btn:hover { background: #222; color: white; border-color: #888; }
-        .slot-btn.active {
-            background: white; color: black; box-shadow: 0 0 10px white; border-color: white;
-        }
+        .slot-btn:hover { border-color: #777; color: white; }
+        .slot-btn.active { background: white; color: black; box-shadow: 0 0 15px white; border-color: white;}
 
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .action-btn {
-            padding: 20px; border: none; font-family: 'Orbitron', sans-serif;
-            font-weight: 900; font-size: 16px; text-transform: uppercase;
-            cursor: pointer; opacity: 0.5; pointer-events: none; border-radius: 4px;
-            transition: all 0.2s;
+            padding: 25px; border: none; font-family: 'Orbitron'; font-weight: 900; 
+            font-size: 18px; cursor: pointer; opacity: 0.3; pointer-events: none;
+            text-transform: uppercase;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+            transition: 0.2s;
         }
         .action-btn.ready { opacity: 1; pointer-events: all; }
         
-        .btn-green { background: linear-gradient(to bottom, #006600, #004400); color: #8f8; border-bottom: 3px solid #0f0; }
-        .btn-green:hover { box-shadow: 0 0 15px var(--neon-green); filter: brightness(1.2); }
+        .btn-green { background: var(--neon-green); color: black; }
+        .btn-green:hover { box-shadow: 0 0 20px var(--neon-green); transform: translateY(-2px); }
         
-        .btn-red { background: linear-gradient(to bottom, #660000, #440000); color: #f88; border-bottom: 3px solid #f00; }
-        .btn-red:hover { box-shadow: 0 0 15px var(--neon-red); filter: brightness(1.2); }
+        .btn-red { background: var(--neon-red); color: white; }
+        .btn-red:hover { box-shadow: 0 0 20px var(--neon-red); transform: translateY(-2px); }
 
-        .log-container {
-            flex-grow: 1; 
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #222;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 11px;
-            overflow-y: auto;
-            min-height: 100px;
+        .log-list {
+            height: 200px; overflow-y: auto; font-family: 'Roboto Mono', monospace; font-size: 12px;
         }
-        .log-item { margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; }
-        .plus { color: var(--neon-green); }
-        .minus { color: var(--neon-red); }
-        #status-bar {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px;
-            border: 1px solid #444; color: white; font-size: 14px; letter-spacing: 1px;
-            pointer-events: none; opacity: 0; transition: opacity 0.3s;
-        }
-        #status-bar.show { opacity: 1; }
+        .log-entry { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between;}
 
     </style>
 </head>
 <body>
 
+<div id="start-screen">
+    <div class="modal-box">
+        <div class="modal-title">THE WALL</div>
+        <div class="input-group">
+            <label>Player 1 Name</label>
+            <input type="text" id="p1Input" value="Player 1" placeholder="Enter Name">
+        </div>
+        <div class="input-group">
+            <label>Player 2 Name</label>
+            <input type="text" id="p2Input" value="Player 2" placeholder="Enter Name">
+        </div>
+        <button class="start-btn" onclick="startGame()">ENTER STUDIO</button>
+    </div>
+</div>
+
 <div id="app-container">
     
-    <!-- GAME STAGE -->
     <div id="game-stage">
-        <div id="status-bar">STATUS MESSAGE</div>
         <canvas id="wallCanvas"></canvas>
+        
+        <div id="hud-layer">
+            <div class="player-card p1 active" id="card-0">
+                <div class="p-name" id="name-0">PLAYER 1</div>
+                <div class="p-score" id="score-0">$0</div>
+            </div>
+            
+            <div id="turn-indicator">PLAYER 1's TURN</div>
+
+            <div class="player-card p2" id="card-1">
+                <div class="p-name" id="name-1">PLAYER 2</div>
+                <div class="p-score" id="score-1">$0</div>
+            </div>
+        </div>
     </div>
 
     <div id="control-panel">
-        <h1>The Wall</h1>
-        
-        <div class="bank-display">
-            <div class="bank-label">CURRENT BANK</div>
-            <div class="bank-value" id="bankDisplay">$0</div>
+        <div class="panel-header">
+            <h2>CONTROLS</h2>
         </div>
 
-
-        <div class="control-box">
-            <div class="box-title">
-                <span>1. SELECT ZONES</span>
-                <span id="ballCount">0/3</span>
+        <div class="control-section">
+            <div class="section-title">
+                <span>DROP ZONES</span>
+                <span id="ballCount" style="color:var(--neon-blue)">0/3</span>
             </div>
-            <div class="slots-grid" id="slotsContainer">
-            
-            </div>
+            <div class="slots-grid" id="slotsContainer"></div>
         </div>
 
-        <div class="control-box">
-            <div class="box-title">2. REVEAL</div>
+        <div class="control-section">
+            <div class="section-title">REVEAL ANSWER</div>
             <div class="btn-grid">
                 <button class="action-btn btn-green" id="btnGreen" onclick="triggerDrop('green')">CORRECT</button>
                 <button class="action-btn btn-red" id="btnRed" onclick="triggerDrop('red')">WRONG</button>
             </div>
         </div>
 
-        <div class="log-container" id="gameLog">
-            <div style="color:#555; text-align:center;">--- Transaction Log ---</div>
+        <div class="control-section" style="flex:1; display:flex; flex-direction:column;">
+            <div class="section-title">EVENT LOG</div>
+            <div class="log-list" id="gameLog"></div>
         </div>
 
-        <button onclick="resetGame()" style="background:transparent; border:1px solid #333; color:#666; padding:10px; cursor:pointer;">RESET BOARD</button>
+        <button onclick="resetGame()" style="background:transparent; border:1px solid #444; color:#666; padding:10px; cursor:pointer; font-family:'Orbitron'">RESET MATCH</button>
     </div>
 
 </div>
@@ -208,33 +292,32 @@
     const V_HEIGHT = 1400; 
     let scale = 1;
 
-    // --- GAME CONSTANTS ---
-    const GRAVITY = 0.4; // Slightly stronger for snappy feel
+    const GRAVITY = 0.45;
     const FRICTION = 0.98;
     const RESTITUTION = 0.6;
     const DROP_ZONES = 7;
-    const BIN_VALUES = [1, 500, 100, 2000, 10, 5000, 100, 10000, 1, 25000, 10, 50000, 100, 100000, 1];
+    const BIN_VALUES = [1, 1000, 100, 2000, 10, 5000, 100, 10000, 1, 25000, 10, 50000, 100, 100000, 1];
 
-    // --- STATE ---
+    let players = [
+        { name: "P1", score: 0 },
+        { name: "P2", score: 0 }
+    ];
+    let currentPlayer = 0; 
+    let ballsRemaining = 3;
+    let isProcessing = false; 
+
     let balls = [];
     let pins = [];
     let bins = [];
     let zones = [];
     let particles = [];
     let floats = [];
-    let totalScore = 0;
 
-    // --- CLASSES ---
     class Vector {
         constructor(x, y) { this.x = x; this.y = y; }
         add(v) { return new Vector(this.x + v.x, this.y + v.y); }
         sub(v) { return new Vector(this.x - v.x, this.y - v.y); }
         mult(n) { return new Vector(this.x * n, this.y * n); }
-        mag() { return Math.sqrt(this.x * this.x + this.y * this.y); }
-        normalize() { 
-            let m = this.mag(); 
-            return (m === 0) ? new Vector(0,0) : new Vector(this.x/m, this.y/m); 
-        }
         dot(v) { return this.x * v.x + this.y * v.y; }
     }
 
@@ -242,7 +325,7 @@
         constructor(x, y, zoneId) {
             this.pos = new Vector(x, y);
             this.vel = new Vector(0, 0);
-            this.radius = 14; // Virtual pixels
+            this.radius = 14;
             this.active = true;
             this.hovering = true;
             this.zoneId = zoneId;
@@ -251,54 +334,33 @@
 
         update() {
             if (!this.active || this.hovering) return;
-
-            // Physics
             this.vel.y += GRAVITY;
             this.vel = this.vel.mult(FRICTION);
             this.pos = this.pos.add(this.vel);
 
-            // Wall Collisions (Virtual Coordinates)
-            if (this.pos.x < this.radius) {
-                this.pos.x = this.radius;
-                this.vel.x *= -0.6;
-            }
-            if (this.pos.x > V_WIDTH - this.radius) {
-                this.pos.x = V_WIDTH - this.radius;
-                this.vel.x *= -0.6;
-            }
+            if (this.pos.x < this.radius) { this.pos.x = this.radius; this.vel.x *= -0.6; }
+            if (this.pos.x > V_WIDTH - this.radius) { this.pos.x = V_WIDTH - this.radius; this.vel.x *= -0.6; }
 
-            // Pin Collisions
             for(let pin of pins) {
                 let dx = this.pos.x - pin.x;
                 let dy = this.pos.y - pin.y;
                 let distSq = dx*dx + dy*dy;
                 let minDist = this.radius + pin.r;
-
                 if (distSq < minDist * minDist) {
                     let dist = Math.sqrt(distSq);
                     let normal = new Vector(dx/dist, dy/dist);
-                    
-                    // Chaos Factor
                     let chaos = new Vector((Math.random()-0.5)*1.5, (Math.random()-0.5)*1.5);
-                    
                     let dot = this.vel.dot(normal);
                     let reflect = this.vel.sub(normal.mult(2 * dot));
-                    
                     this.vel = reflect.add(chaos).mult(RESTITUTION);
-                    
-                    // Push out
-                    let overlap = minDist - dist;
-                    this.pos = this.pos.add(normal.mult(overlap));
+                    this.pos = this.pos.add(normal.mult(minDist - dist));
                 }
             }
 
-            // Bin Collisions
-            if (this.pos.y > V_HEIGHT - 120) { 
+            if (this.pos.y > V_HEIGHT - 120) {
                 for(let bin of bins) {
                     if (this.pos.x > bin.x && this.pos.x < bin.x + bin.w) {
-                        if (this.pos.y > bin.y + 40) { 
-                            this.finish(bin);
-                        }
+                        if (this.pos.y > bin.y + 40) this.finish(bin);
                     }
                 }
             }
@@ -308,142 +370,73 @@
             this.active = false;
             this.pos.x = bin.x + bin.w/2;
             this.pos.y = bin.y + bin.h/2;
-            
             handleScore(bin.value, this.color, this.pos.x, this.pos.y);
         }
 
         draw(ctx) {
             ctx.beginPath();
             ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI*2);
-            
             let fill = '#fff';
             let glow = 'rgba(255,255,255,0.5)';
             if (this.color === 'green') { fill = '#39ff14'; glow = '#39ff14'; }
             if (this.color === 'red') { fill = '#ff003c'; glow = '#ff003c'; }
-
-            ctx.fillStyle = fill;
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = glow;
-            ctx.fill();
+            
+            ctx.shadowBlur = 20; ctx.shadowColor = glow; ctx.fillStyle = fill; ctx.fill();
             ctx.shadowBlur = 0;
             
-            // Highlight
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.beginPath();
-            ctx.arc(this.pos.x - 4, this.pos.y - 4, 4, 0, Math.PI*2);
-            ctx.fill();
+            ctx.beginPath(); ctx.arc(this.pos.x - 4, this.pos.y - 4, 4, 0, Math.PI*2); ctx.fill();
         }
     }
 
-    // --- CORE LOGIC ---
-
-    function resize() {
-        // 1. Get container dimensions
-        const cw = stage.clientWidth;
-        const ch = stage.clientHeight;
-        const scaleX = cw / V_WIDTH;
-        const scaleY = ch / V_HEIGHT;
+    function startGame() {
+        const p1Name = document.getElementById('p1Input').value || "Player 1";
+        const p2Name = document.getElementById('p2Input').value || "Player 2";
         
-        // Use the smaller scale to ensure it fits (contain)
-        scale = Math.min(scaleX, scaleY) * 0.95; 
-
-        // 3. Set actual canvas pixel size
-        canvas.width = V_WIDTH * scale;
-        canvas.height = V_HEIGHT * scale;
-
-    }
-
-    function initBoard() {
-        pins = [];
-        bins = [];
-        zones = [];
-
-        const zoneW = V_WIDTH / DROP_ZONES;
-        for(let i=0; i<DROP_ZONES; i++) {
-            zones.push({
-                x: i * zoneW,
-                y: 20,
-                w: zoneW,
-                h: 80,
-                id: i
-            });
-        }
-
-        const rows = 16;
-        const cols = 15;
-        const startY = 150;
-        const endY = V_HEIGHT - 150;
-        const usableW = V_WIDTH - 80; 
-        const stepX = usableW / (cols - 1);
-        const stepY = (endY - startY) / rows;
-
-        for(let r=0; r<rows; r++) {
-            let count = (r % 2 === 0) ? cols : cols - 1;
-            let xOff = (r % 2 === 0) ? 40 : 40 + stepX/2;
-            
-            for(let c=0; c<count; c++) {
-                pins.push({
-                    x: xOff + (c * stepX),
-                    y: startY + (r * stepY),
-                    r: 5
-                });
-            }
-        }
-
-        const binW = V_WIDTH / 15;
-        for(let i=0; i<15; i++) {
-            bins.push({
-                x: i * binW,
-                y: V_HEIGHT - 120,
-                w: binW,
-                h: 120,
-                value: BIN_VALUES[i]
-            });
-        }
-    }
-
-    function handleScore(val, type, x, y) {
-        let amt = (type === 'green') ? val : -val;
-        totalScore += amt;
+        players[0].name = p1Name;
+        players[1].name = p2Name;
         
-        const disp = document.getElementById('bankDisplay');
-        disp.innerText = (totalScore < 0 ? "-" : "") + "$" + Math.abs(totalScore).toLocaleString();
-        disp.style.color = totalScore < 0 ? "#ff003c" : "white";
-
-        const log = document.getElementById('gameLog');
-        const item = document.createElement('div');
-        item.className = 'log-item';
-        let sym = amt >= 0 ? "+" : "-";
-        let col = amt >= 0 ? "plus" : "minus";
-        item.innerHTML = `<span class="${col}">${sym}$${val.toLocaleString()}</span> <span style="color:#666; float:right;">Bin ${bins.findIndex(b=>Math.abs(b.x + b.w/2 - x) < 10) + 1}</span>`;
-        log.prepend(item);
-
-        floats.push({
-            txt: sym + "$" + shortNum(val),
-            x: x, y: y - 50, life: 1.0, 
-            color: amt >= 0 ? "#39ff14" : "#ff003c"
-        });
-        spawnParticles(x, y, type);
-
-        if (balls.every(b => !b.active)) {
-            setTimeout(() => {
-                balls = [];
-                updateUI();
-                showStatus("ROUND COMPLETE - PLACE BALLS");
-            }, 1500);
-        }
+        document.getElementById('name-0').innerText = p1Name;
+        document.getElementById('name-1').innerText = p2Name;
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        
+        currentPlayer = 0;
+        ballsRemaining = 3;
+        updateUI();
+        announceTurn();
     }
 
-    // --- GAMEPLAY CONTROLS 
+    function announceTurn() {
+        const ind = document.getElementById('turn-indicator');
+        const name = players[currentPlayer].name;
+        ind.innerText = `${name}'S TURN`;
+        ind.style.color = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
+        ind.style.opacity = 1;
+        
+        document.getElementById('card-0').classList.toggle('active', currentPlayer === 0);
+        document.getElementById('card-1').classList.toggle('active', currentPlayer === 1);
+
+        setTimeout(() => ind.style.opacity = 0, 2000);
+    }
+
+    function switchTurn() {
+        currentPlayer = currentPlayer === 0 ? 1 : 0;
+        ballsRemaining = 3;
+        balls = [];
+        updateUI();
+        announceTurn();
+    }
 
     function toggleZone(id) {
-        if (balls.some(b => !b.hovering)) return; 
+        if (isProcessing) return; 
+        if (balls.some(b => !b.hovering)) return;
 
         let existing = balls.findIndex(b => b.zoneId === id);
         if (existing !== -1) {
             balls.splice(existing, 1);
         } else {
-            if (balls.length < 3) {
+            if (balls.length < ballsRemaining) {
                 let z = zones[id];
                 balls.push(new Ball(z.x + z.w/2, z.y + z.h/2, id));
             }
@@ -454,8 +447,9 @@
     function triggerDrop(type) {
         if (balls.length === 0 || balls.some(b => !b.hovering)) return;
 
-        showStatus(type === 'green' ? "CORRECT ANSWER!" : "WRONG ANSWER!");
-        
+        isProcessing = true;
+        ballsRemaining -= balls.length;
+
         balls.forEach((b, i) => {
             b.color = type;
             setTimeout(() => {
@@ -468,59 +462,78 @@
         updateUI();
     }
 
+    function handleScore(val, type, x, y) {
+        let amt = (type === 'green') ? val : -val;
+        players[currentPlayer].score += amt;
+        
+        const scoreEl = document.getElementById(`score-${currentPlayer}`);
+        scoreEl.innerText = (players[currentPlayer].score < 0 ? "-" : "") + "$" + Math.abs(players[currentPlayer].score).toLocaleString();
+        
+        const log = document.getElementById('gameLog');
+        const item = document.createElement('div');
+        item.className = 'log-entry';
+        let color = amt >= 0 ? 'var(--neon-green)' : 'var(--neon-red)';
+        item.innerHTML = `<span style="color:${color}">${amt>=0?'+':'-'}$${val.toLocaleString()}</span> <span>${players[currentPlayer].name}</span>`;
+        log.prepend(item);
+
+        floats.push({
+            txt: (amt>=0?'+':'-') + "$" + shortNum(val),
+            x: x, y: y - 50, life: 1.0, 
+            color: amt >= 0 ? "#39ff14" : "#ff003c"
+        });
+        spawnParticles(x, y, type);
+
+        if (balls.every(b => !b.active)) {
+            setTimeout(() => {
+                balls = [];
+                isProcessing = false;
+                if (ballsRemaining <= 0) {
+                    switchTurn();
+                } else {
+                    updateUI();
+                }
+            }, 1000);
+        }
+    }
+
     function resetGame() {
-        totalScore = 0;
-        balls = [];
-        floats = [];
-        particles = [];
-        document.getElementById('bankDisplay').innerText = "$0";
-        document.getElementById('bankDisplay').style.color = "white";
-        document.getElementById('gameLog').innerHTML = '<div style="color:#555; text-align:center;">--- Transaction Log ---</div>';
-        showStatus("GAME RESET");
-        updateUI();
+        location.reload(); 
     }
 
+    function resize() {
+        const cw = stage.clientWidth;
+        const ch = stage.clientHeight;
+        const scaleX = cw / V_WIDTH;
+        const scaleY = ch / V_HEIGHT;
+        scale = Math.min(scaleX, scaleY) * 0.95;
+        canvas.width = V_WIDTH * scale;
+        canvas.height = V_HEIGHT * scale;
+    }
 
-    function updateUI() {
-        // Slots
-        for(let i=0; i<DROP_ZONES; i++) {
-            let btn = document.getElementById('slot-'+i);
-            if(balls.some(b => b.zoneId === i)) btn.classList.add('active');
-            else btn.classList.remove('active');
+    function initBoard() {
+        const zoneW = V_WIDTH / DROP_ZONES;
+        for(let i=0; i<DROP_ZONES; i++) zones.push({ x: i * zoneW, y: 20, w: zoneW, h: 80, id: i });
+
+        const rows = 16; const cols = 15;
+        const startY = 150; const endY = V_HEIGHT - 150;
+        const usableW = V_WIDTH - 80;
+        const stepX = usableW / (cols - 1);
+        const stepY = (endY - startY) / rows;
+
+        for(let r=0; r<rows; r++) {
+            let count = (r % 2 === 0) ? cols : cols - 1;
+            let xOff = (r % 2 === 0) ? 40 : 40 + stepX/2;
+            for(let c=0; c<count; c++) pins.push({ x: xOff + (c * stepX), y: startY + (r * stepY), r: 5 });
         }
-        document.getElementById('ballCount').innerText = balls.length + "/3";
 
-        // Buttons
-        const locked = balls.length === 0 || balls.some(b => !b.hovering);
-        document.getElementById('btnGreen').className = 'action-btn btn-green ' + (locked?'':'ready');
-        document.getElementById('btnRed').className = 'action-btn btn-red ' + (locked?'':'ready');
+        const binW = V_WIDTH / 15;
+        for(let i=0; i<15; i++) bins.push({ x: i * binW, y: V_HEIGHT - 120, w: binW, h: 120, value: BIN_VALUES[i] });
     }
-
-    function generateControls() {
-        const c = document.getElementById('slotsContainer');
-        c.innerHTML = '';
-        for(let i=0; i<DROP_ZONES; i++) {
-            let b = document.createElement('div');
-            b.className = 'slot-btn';
-            b.innerText = i+1;
-            b.id = 'slot-'+i;
-            b.onclick = () => toggleZone(i);
-            c.appendChild(b);
-        }
-    }
-
-    function showStatus(msg) {
-        const el = document.getElementById('status-bar');
-        el.innerText = msg;
-        el.classList.add('show');
-        setTimeout(() => el.classList.remove('show'), 2000);
-    }
-
 
     function loop() {
         ctx.clearRect(0,0,canvas.width, canvas.height);
-        
         ctx.save();
+        
         const offsetX = (canvas.width - V_WIDTH * scale) / 2;
         const offsetY = (canvas.height - V_HEIGHT * scale) / 2;
         ctx.translate(offsetX, offsetY);
@@ -529,47 +542,29 @@
         bins.forEach(b => {
             let isGold = b.value >= 100000;
             let grad = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
-            grad.addColorStop(0, isGold ? '#ffd700' : '#333');
-            grad.addColorStop(1, isGold ? '#b8860b' : '#111');
+            grad.addColorStop(0, isGold ? '#ffd700' : '#222');
+            grad.addColorStop(1, isGold ? '#b8860b' : '#000');
+            ctx.fillStyle = grad; ctx.fillRect(b.x, b.y, b.w, b.h);
             
-            ctx.fillStyle = grad;
-            ctx.fillRect(b.x, b.y, b.w, b.h);
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(b.x, b.y, b.w, b.h);
-
-            ctx.fillStyle = isGold ? 'black' : 'white';
-            ctx.font = 'bold 24px Roboto Mono';
-            ctx.textAlign = 'center';
-            ctx.fillText("$"+shortNum(b.value), b.x + b.w/2, b.y + 70);
+            ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
+            
+            ctx.fillStyle = isGold ? 'black' : '#888';
+            ctx.font = 'bold 20px Rajdhani'; ctx.textAlign = 'center';
+            ctx.fillText(shortNum(b.value), b.x + b.w/2, b.y + 70);
         });
 
-        // 2. Pins
-        ctx.fillStyle = 'white';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = 'white';
-        pins.forEach(p => {
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-            ctx.fill();
-        });
+        ctx.fillStyle = 'white'; ctx.shadowBlur = 5; ctx.shadowColor = 'white';
+        pins.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); });
         ctx.shadowBlur = 0;
 
         zones.forEach(z => {
-            ctx.strokeStyle = 'rgba(0, 243, 255, 0.3)';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)'; ctx.lineWidth = 2;
             ctx.strokeRect(z.x+5, z.y, z.w-10, z.h);
-            
-            ctx.fillStyle = 'var(--neon-blue)';
-            ctx.font = 'bold 30px Orbitron';
+            ctx.fillStyle = 'rgba(0, 243, 255, 0.5)'; ctx.font = 'bold 30px Orbitron';
             ctx.fillText(z.id + 1, z.x + z.w/2, z.y + 50);
         });
 
-        balls.forEach(b => {
-            b.update();
-            b.draw(ctx);
-        });
-
+        balls.forEach(b => { b.update(); b.draw(ctx); });
         drawFX(ctx);
 
         ctx.restore();
@@ -577,28 +572,21 @@
     }
 
     function drawFX(ctx) {
-        // Particles
         for(let i=particles.length-1; i>=0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.02;
             ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color;
-            ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
             ctx.globalAlpha = 1;
             if (p.life <= 0) particles.splice(i, 1);
         }
-
-        // Float Text
         for(let i=floats.length-1; i>=0; i--) {
             let f = floats[i];
-            f.y -= 2; f.life -= 0.015;
+            f.y -= 1.5; f.life -= 0.015;
             ctx.globalAlpha = Math.max(0, f.life);
-            ctx.fillStyle = f.color;
-            ctx.font = '900 40px Orbitron';
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 4;
-            ctx.strokeText(f.txt, f.x, f.y);
-            ctx.fillText(f.txt, f.x, f.y);
+            ctx.fillStyle = f.color; ctx.font = '900 40px Orbitron';
+            ctx.strokeStyle = 'black'; ctx.lineWidth = 4;
+            ctx.strokeText(f.txt, f.x, f.y); ctx.fillText(f.txt, f.x, f.y);
             ctx.globalAlpha = 1;
             if (f.life <= 0) floats.splice(i, 1);
         }
@@ -606,13 +594,8 @@
 
     function spawnParticles(x, y, type) {
         let c = type === 'green' ? '#39ff14' : '#ff003c';
-        for(let i=0; i<30; i++) {
-            particles.push({
-                x:x, y:y,
-                vx:(Math.random()-0.5)*15,
-                vy:(Math.random()-0.5)*15,
-                life: 1.0, color: c
-            });
+        for(let i=0; i<20; i++) {
+            particles.push({x, y, vx:(Math.random()-0.5)*10, vy:(Math.random()-0.5)*10, life:1.0, color:c});
         }
     }
 
@@ -622,11 +605,34 @@
         return n;
     }
 
+    function generateControls() {
+        const c = document.getElementById('slotsContainer');
+        c.innerHTML = '';
+        for(let i=0; i<DROP_ZONES; i++) {
+            let b = document.createElement('div');
+            b.className = 'slot-btn'; b.innerText = i+1; b.id = 'slot-'+i;
+            b.onclick = () => toggleZone(i);
+            c.appendChild(b);
+        }
+    }
+
+    function updateUI() {
+        for(let i=0; i<DROP_ZONES; i++) {
+            let btn = document.getElementById('slot-'+i);
+            if(balls.some(b => b.zoneId === i)) btn.classList.add('active');
+            else btn.classList.remove('active');
+        }
+        document.getElementById('ballCount').innerText = balls.length + "/" + ballsRemaining;
+
+        const locked = balls.length === 0 || balls.some(b => !b.hovering) || isProcessing;
+        document.getElementById('btnGreen').className = 'action-btn btn-green ' + (locked?'':'ready');
+        document.getElementById('btnRed').className = 'action-btn btn-red ' + (locked?'':'ready');
+    }
+
     initBoard();
     generateControls();
     resize();
     window.addEventListener('resize', resize);
-    
     loop();
 
 </script>
