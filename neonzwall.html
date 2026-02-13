@@ -26,14 +26,13 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            /* CRITICAL: This splits the screen left/right */
             display: flex; 
             flex-direction: row; 
         }
 
         /* --- LEFT COLUMN: CONTROLS --- */
         #control-panel {
-            width: 360px; /* Fixed width */
+            width: 360px;  
             height: 100vh;
             background: var(--panel-bg);
             border-right: 1px solid #333;
@@ -41,8 +40,8 @@
             flex-direction: column;
             padding: 20px;
             box-sizing: border-box;
-            z-index: 20; /* High Z-index to stay on top */
-            flex-shrink: 0; /* Never shrink */
+            z-index: 20;  
+            flex-shrink: 0;  
             box-shadow: 10px 0 30px rgba(0,0,0,0.5);
         }
 
