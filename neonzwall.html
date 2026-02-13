@@ -3,361 +3,366 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neonz Wall: Dual Duel</title>
+    <title>The Wall: Pro Studio</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap');
 
         :root {
-            --neon-blue: #00f3ff;
-            --neon-pink: #bc13fe;
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00ff;
             --neon-green: #39ff14;
             --neon-red: #ff003c;
-            --bg-dark: #050505;
-            --panel-bg: #0a0a0a;
+            --bg-deep: #050505;
+            --panel-surface: #0e0e12;
+            --border-color: #222;
         }
 
-        /* --- MAIN LAYOUT ENGINE --- */
+        * { box-sizing: border-box; user-select: none; }
+
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--bg-dark);
+            background-color: var(--bg-deep);
             color: white;
             font-family: 'Rajdhani', sans-serif;
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            /* CRITICAL: This splits the screen left/right */
             display: flex; 
-            flex-direction: row; 
         }
 
-        /* --- LEFT COLUMN: CONTROLS --- */
-        #control-panel {
-            width: 360px; /* Fixed width */
+        /* --- LEFT SIDEBAR: CONTROLS --- */
+        #sidebar {
+            width: 340px;
             height: 100vh;
-            background: var(--panel-bg);
-            border-right: 1px solid #333;
+            background: var(--panel-surface);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
             padding: 20px;
-            box-sizing: border-box;
-            z-index: 20; /* High Z-index to stay on top */
-            flex-shrink: 0; /* Never shrink */
+            z-index: 20;
             box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
 
-        /* --- RIGHT COLUMN: GAME STAGE --- */
-        #game-stage {
-            flex-grow: 1; /* Takes ALL remaining space */
+        .panel-title {
+            font-family: 'Orbitron';
+            font-size: 24px;
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .control-group {
+            background: #15151a;
+            border: 1px solid #2a2a2a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .group-header {
+            font-family: 'Orbitron';
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 10px;
+            display: flex; 
+            justify-content: space-between;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Slot Buttons */
+        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .slot-btn {
+            aspect-ratio: 1;
+            background: #1a1a20;
+            border: 1px solid #333;
+            color: #666;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: 'Orbitron'; font-weight: bold; font-size: 14px;
+            transition: all 0.1s;
+            border-radius: 4px;
+        }
+        .slot-btn:hover { border-color: var(--neon-cyan); color: white; background: #222; }
+        .slot-btn.active { 
+            background: white; color: black; border-color: white; 
+            box-shadow: 0 0 15px white;
+        }
+
+        /* Action Buttons */
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-btn {
+            padding: 16px;
+            border: none;
+            font-family: 'Orbitron'; font-weight: 900; font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+            opacity: 0.4;
+            pointer-events: none;
+            border-radius: 4px;
+            transition: 0.2s;
+            color: #000;
+        }
+        .action-btn.ready { opacity: 1; pointer-events: all; }
+        
+        .btn-green { background: var(--neon-green); box-shadow: 0 4px 0 #004400; }
+        .btn-green:active { transform: translateY(4px); box-shadow: none; }
+        
+        .btn-red { background: var(--neon-red); color: white; box-shadow: 0 4px 0 #440000; }
+        .btn-red:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Log */
+        .log-container {
+            flex-grow: 1;
+            background: #08080a;
+            border: 1px solid #222;
+            border-radius: 6px;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: 'Rajdhani', monospace;
+            font-size: 13px;
+        }
+        .log-entry {
+            display: flex; justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #1a1a1a;
+            color: #aaa;
+        }
+
+        .reset-btn {
+            margin-top: 15px;
+            background: transparent;
+            border: 1px solid #333;
+            color: #555;
+            padding: 12px;
+            font-family: 'Orbitron'; font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+        }
+        .reset-btn:hover { border-color: #666; color: white; }
+
+        /* --- RIGHT SIDE: STADIUM --- */
+        #stadium {
+            flex-grow: 1;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
             position: relative;
-            background: radial-gradient(circle at center, #1a2233 0%, #000 90%);
-            overflow: hidden;
+        }
+
+        /* SCOREBOARD HEADER */
+        #scoreboard {
+            height: 110px;
+            background: #0a0a0a;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            z-index: 15;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+
+        .team-panel {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+            transition: 0.3s;
+            opacity: 0.4;
+        }
+        .team-panel.active { opacity: 1; transform: scale(1.02); }
+
+        #p1-panel { align-items: flex-start; border-left: 5px solid #333; padding-left: 20px; }
+        #p1-panel.active { border-left-color: var(--neon-cyan); }
+        
+        #p2-panel { align-items: flex-end; border-right: 5px solid #333; padding-right: 20px; }
+        #p2-panel.active { border-right-color: var(--neon-magenta); }
+
+        .team-label { font-family: 'Orbitron'; font-size: 14px; color: #666; letter-spacing: 2px; margin-bottom: 4px; }
+        .team-score { font-family: 'Orbitron'; font-size: 46px; font-weight: 900; color: white; line-height: 1; }
+        
+        #p1-panel.active .team-score { color: var(--neon-cyan); text-shadow: 0 0 20px rgba(0, 243, 255, 0.4); }
+        #p2-panel.active .team-score { color: var(--neon-magenta); text-shadow: 0 0 20px rgba(255, 0, 255, 0.4); }
+
+        /* GAME STAGE */
+        #stage-container {
+            flex-grow: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #151520 0%, #000 80%);
             display: flex;
             justify-content: center;
-            align-items: center;
-            z-index: 10;
+            align-items: center; /* Vertically center the board */
+            overflow: hidden;
         }
 
-        canvas { 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+        canvas {
+            box-shadow: 0 0 100px rgba(0,0,0,0.5);
+            /* Important: Canvas size is controlled by JS, not CSS width/height */
         }
 
-        /* --- UI OVERLAYS (Inside Game Stage) --- */
-        
-        /* Scores */
-        .score-box {
-            position: absolute;
-            top: 20px;
-            padding: 15px 25px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #333;
-            border-radius: 4px;
-            min-width: 180px;
-            transition: all 0.3s;
-        }
-        
-        #p1-box {
-            left: 20px;
-            border-left: 4px solid #444;
-        }
-        #p1-box.active {
-            border-left: 4px solid var(--neon-blue);
-            background: rgba(0, 50, 60, 0.8);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
-        }
-
-        #p2-box {
-            right: 20px;
-            text-align: right;
-            border-right: 4px solid #444;
-        }
-        #p2-box.active {
-            border-right: 4px solid var(--neon-pink);
-            background: rgba(50, 0, 60, 0.8);
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.1);
-        }
-
-        .p-label { font-family: 'Orbitron'; font-size: 12px; color: #888; letter-spacing: 2px; margin-bottom: 5px; }
-        .p-score { font-family: 'Orbitron'; font-size: 28px; font-weight: 700; color: white; }
-        
-        #p1-box.active .p-score { color: var(--neon-blue); }
-        #p2-box.active .p-score { color: var(--neon-pink); }
-
-        /* Turn Indicator */
-        #turn-popup {
+        /* TURN OVERLAY */
+        #turn-overlay {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(0,0,0,0.95);
             border: 2px solid white;
-            padding: 20px 40px;
+            padding: 30px 60px;
             font-family: 'Orbitron';
             font-size: 40px;
             font-weight: 900;
-            text-transform: uppercase;
+            color: white;
+            text-align: center;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
             z-index: 50;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
-            border-radius: 8px;
+            box-shadow: 0 0 50px black;
         }
+        #turn-overlay.visible { opacity: 1; }
 
-        /* --- CONTROL PANEL STYLES --- */
-        .panel-header h2 { 
-            margin: 0; 
-            font-family: 'Orbitron'; 
-            font-size: 24px; 
-            color: #fff; 
-            text-align: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-
-        .control-group {
-            background: #111;
-            border: 1px solid #333;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-        
-        .group-label {
-            font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; 
-            text-transform: uppercase; display: flex; justify-content: space-between;
-        }
-
-        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .slot-btn {
-            background: #1a1a1a; border: 1px solid #333; color: #555;
-            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-family: 'Orbitron'; font-weight: bold; font-size: 14px;
-            transition: 0.1s;
-            border-radius: 3px;
-        }
-        .slot-btn:hover { border-color: var(--neon-blue); color: #fff; background: #222; }
-        .slot-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .action-btn {
-            padding: 15px; border: none; font-family: 'Orbitron'; font-weight: 900; 
-            font-size: 14px; cursor: pointer; opacity: 0.3; pointer-events: none;
-            text-transform: uppercase; color: #000;
-            border-radius: 4px;
-        }
-        .action-btn.ready { opacity: 1; pointer-events: all; }
-        
-        .btn-green { background: var(--neon-green); box-shadow: 0 4px 0 #004400; }
-        .btn-green:active { box-shadow: 0 0 0; transform: translateY(4px); }
-        
-        .btn-red { background: var(--neon-red); color: white; box-shadow: 0 4px 0 #440000; }
-        .btn-red:active { box-shadow: 0 0 0; transform: translateY(4px); }
-
-        /* Log */
-        .log-box {
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid #222;
-            padding: 10px;
-            margin-top: 15px;
-            overflow-y: auto;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 11px;
-            color: #888;
-            border-radius: 4px;
-        }
-        .log-entry { 
-            padding: 6px 0; 
-            border-bottom: 1px solid #111; 
-            display: flex; justify-content: space-between;
-        }
-
-        .reset-btn {
-            background: transparent; border: 1px solid #333; color: #555; 
-            padding: 12px; cursor: pointer; font-family: 'Orbitron'; 
-            font-size: 12px; transition: 0.2s; margin-top: 15px;
-            width: 100%; border-radius: 4px;
-        }
-        .reset-btn:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
-
-        /* --- START MODAL --- */
-        #start-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+        /* START MODAL */
+        #modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
             z-index: 100;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             transition: opacity 0.5s;
         }
-        #start-screen.hidden { opacity: 0; pointer-events: none; }
+        #modal-overlay.hidden { opacity: 0; pointer-events: none; }
 
-        .modal-box {
-            background: rgba(20, 25, 35, 1);
-            border: 2px solid var(--neon-blue);
+        .modal-card {
+            background: #111;
+            border: 1px solid #333;
             padding: 40px;
-            border-radius: 8px;
+            width: 400px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
-            width: 300px;
+            box-shadow: 0 0 100px rgba(0, 243, 255, 0.1);
+            border-radius: 8px;
         }
-        .modal-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 32px;
-            margin-bottom: 30px;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
-        }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; color: var(--neon-blue); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
-        input[type="text"] {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #444;
-            color: white;
-            padding: 10px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
+        .modal-card h1 { font-family: 'Orbitron'; font-size: 36px; margin: 0 0 30px 0; color: white; letter-spacing: 4px; }
+        
+        .input-row { margin-bottom: 20px; text-align: left; }
+        .input-row label { display: block; color: var(--neon-cyan); font-size: 11px; margin-bottom: 5px; font-family: 'Orbitron'; }
+        .input-row input {
+            width: 100%; background: #050505; border: 1px solid #333;
+            color: white; padding: 12px; font-family: 'Orbitron'; font-size: 16px;
             outline: none;
-            box-sizing: border-box;
         }
-        input[type="text"]:focus { border-color: var(--neon-blue); }
+        .input-row input:focus { border-color: var(--neon-cyan); }
+        
         .start-btn {
-            background: var(--neon-blue);
-            border: none;
-            color: black;
-            padding: 15px 0;
-            width: 100%;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 18px;
-            font-weight: 900;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: 0.2s;
+            background: var(--neon-cyan); border: none; width: 100%;
+            padding: 15px; font-family: 'Orbitron'; font-weight: 900; font-size: 18px;
+            cursor: pointer; margin-top: 10px;
         }
-        .start-btn:hover { background: white; box-shadow: 0 0 20px var(--neon-blue); }
+        .start-btn:hover { background: white; box-shadow: 0 0 20px var(--neon-cyan); }
 
     </style>
 </head>
 <body>
 
-<!-- START SCREEN -->
-<div id="start-screen">
-    <div class="modal-box">
-        <div class="modal-title">THE WALL</div>
-        <div class="input-group">
-            <label>Player 1 Name</label>
-            <input type="text" id="p1Input" value="Blue Team" maxlength="10">
+<!-- START MODAL -->
+<div id="modal-overlay">
+    <div class="modal-card">
+        <h1>THE WALL</h1>
+        <div class="input-row">
+            <label>BLUE TEAM NAME</label>
+            <input type="text" id="p1Input" value="Blue Team">
         </div>
-        <div class="input-group">
-            <label>Player 2 Name</label>
-            <input type="text" id="p2Input" value="Pink Team" maxlength="10">
+        <div class="input-row">
+            <label>PINK TEAM NAME</label>
+            <input type="text" id="p2Input" value="Pink Team">
         </div>
-        <button class="start-btn" onclick="startGame()">START MATCH</button>
+        <button class="start-btn" onclick="initGame()">INITIALIZE SYSTEM</button>
     </div>
 </div>
 
-<!-- CONTROLS (LEFT SIDE) -->
-<div id="control-panel">
-    <div class="panel-header">
-        <h2>CONTROLS</h2>
-    </div>
+<!-- SIDEBAR -->
+<div id="sidebar">
+    <div class="panel-title">CONTROLS</div>
 
-    <!-- Zone Selector -->
+    <!-- Drop Zones -->
     <div class="control-group">
-        <div class="group-label">
+        <div class="group-header">
             <span>Select Zones</span>
             <span id="ballCount" style="color:white">0/3</span>
         </div>
-        <div class="slots-grid" id="slotsContainer"></div>
+        <div class="slots-grid" id="slotsGrid"></div>
     </div>
 
-    <!-- Actions -->
+    <!-- Reveal -->
     <div class="control-group">
-        <div class="group-label">Reveal Result</div>
+        <div class="group-header">Reveal Result</div>
         <div class="btn-row">
-            <button class="action-btn btn-green" id="btnGreen" onclick="triggerDrop('green')">CORRECT</button>
-            <button class="action-btn btn-red" id="btnRed" onclick="triggerDrop('red')">WRONG</button>
+            <button class="action-btn btn-green" id="btnCorrect" onclick="dropBalls('green')">CORRECT</button>
+            <button class="action-btn btn-red" id="btnWrong" onclick="dropBalls('red')">WRONG</button>
         </div>
     </div>
 
     <!-- Log -->
-    <div class="group-label" style="margin-top: 20px;">Transaction Log</div>
-    <div class="log-box" id="gameLog">
-        <div style="text-align:center; padding-top:20px;">Waiting for drop...</div>
-    </div>
+    <div class="group-header" style="margin-top: auto;">Transaction Log</div>
+    <div class="log-container" id="gameLog"></div>
 
-    <button class="reset-btn" onclick="resetGame()">RESET MATCH</button>
+    <button class="reset-btn" onclick="resetGame()">Factory Reset</button>
 </div>
 
-<!-- GAME STAGE (RIGHT SIDE) -->
-<div id="game-stage">
-    <canvas id="wallCanvas"></canvas>
-    
-    <!-- UI OVERLAYS (Floating above canvas) -->
-    <div id="p1-box" class="score-box active">
-        <div class="p-label" id="name-0">PLAYER 1</div>
-        <div class="p-score" id="score-0">$0</div>
+<!-- MAIN STADIUM -->
+<div id="stadium">
+    <!-- Scoreboard Header -->
+    <div id="scoreboard">
+        <div class="team-panel active" id="p1-panel">
+            <div class="team-label" id="p1-name">PLAYER 1</div>
+            <div class="team-score" id="p1-score">$0</div>
+        </div>
+
+        <!-- Center Spacer / Logo Area if needed -->
+        <div style="flex-grow:1;"></div>
+
+        <div class="team-panel" id="p2-panel">
+            <div class="team-label" id="p2-name">PLAYER 2</div>
+            <div class="team-score" id="p2-score">$0</div>
+        </div>
     </div>
 
-    <div id="p2-box" class="score-box">
-        <div class="p-label" id="name-1">PLAYER 2</div>
-        <div class="p-score" id="score-1">$0</div>
+    <!-- Canvas Area -->
+    <div id="stage-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="turn-overlay">PLAYER 1 START</div>
     </div>
-
-    <div id="turn-popup">PLAYER 1 START</div>
 </div>
 
 <script>
-    const canvas = document.getElementById('wallCanvas');
-    const ctx = canvas.getContext('2d');
-    const stage = document.getElementById('game-stage');
-
-    // --- GAME CONFIG ---
-    const V_WIDTH = 1000;
-    const V_HEIGHT = 1400; 
-    let scale = 1;
-
-    const GRAVITY = 0.45;
-    const FRICTION = 0.98;
-    const RESTITUTION = 0.6;
-    const DROP_ZONES = 7;
+    // --- ENGINE CONSTANTS ---
+    const V_WIDTH = 1000;  // Virtual Board Width
+    const V_HEIGHT = 1400; // Virtual Board Height
+    
+    // Physics Config (Heavy, realistic feel)
+    const GRAVITY = 0.55;
+    const FRICTION = 0.99;
+    const RESTITUTION = 0.5; // Bounciness
+    
     const BIN_VALUES = [1, 1000, 100, 2000, 10, 5000, 100, 10000, 1, 25000, 10, 50000, 100, 100000, 1];
+    const DROP_ZONES = 7;
 
-    let players = [{ name: "P1", score: 0 }, { name: "P2", score: 0 }];
-    let currentPlayer = 0; 
+    // --- STATE ---
+    let canvas, ctx, container;
+    let scale = 1;
+    let players = [{name: "P1", score: 0}, {name: "P2", score: 0}];
+    let turnIndex = 0;
     let ballsRemaining = 3;
-    let isProcessing = false; 
+    let isDropping = false;
 
+    // Entities
     let balls = [];
     let pins = [];
     let bins = [];
@@ -365,338 +370,423 @@
     let particles = [];
     let floats = [];
 
-    // --- MATH ---
-    class Vector {
-        constructor(x, y) { this.x = x; this.y = y; }
-        add(v) { return new Vector(this.x + v.x, this.y + v.y); }
-        sub(v) { return new Vector(this.x - v.x, this.y - v.y); }
-        mult(n) { return new Vector(this.x * n, this.y * n); }
-        dot(v) { return this.x * v.x + this.y * v.y; }
-    }
-
-    class Ball {
-        constructor(x, y, zoneId) {
-            this.pos = new Vector(x, y);
-            this.vel = new Vector(0, 0);
-            this.radius = 14;
-            this.active = true;
-            this.hovering = true;
-            this.zoneId = zoneId;
-            this.color = 'white';
-        }
-
-        update() {
-            if (!this.active || this.hovering) return;
-            this.vel.y += GRAVITY;
-            this.vel = this.vel.mult(FRICTION);
-            this.pos = this.pos.add(this.vel);
-
-            if (this.pos.x < this.radius) { this.pos.x = this.radius; this.vel.x *= -0.6; }
-            if (this.pos.x > V_WIDTH - this.radius) { this.pos.x = V_WIDTH - this.radius; this.vel.x *= -0.6; }
-
-            for(let pin of pins) {
-                let dx = this.pos.x - pin.x;
-                let dy = this.pos.y - pin.y;
-                let distSq = dx*dx + dy*dy;
-                let minDist = this.radius + pin.r;
-                if (distSq < minDist * minDist) {
-                    let dist = Math.sqrt(distSq);
-                    let normal = new Vector(dx/dist, dy/dist);
-                    let chaos = new Vector((Math.random()-0.5)*1.5, (Math.random()-0.5)*1.5);
-                    let dot = this.vel.dot(normal);
-                    let reflect = this.vel.sub(normal.mult(2 * dot));
-                    this.vel = reflect.add(chaos).mult(RESTITUTION);
-                    this.pos = this.pos.add(normal.mult(minDist - dist));
-                }
-            }
-
-            if (this.pos.y > V_HEIGHT - 120) {
-                for(let bin of bins) {
-                    if (this.pos.x > bin.x && this.pos.x < bin.x + bin.w) {
-                        if (this.pos.y > bin.y + 40) this.finish(bin);
-                    }
-                }
-            }
-        }
-
-        finish(bin) {
-            this.active = false;
-            this.pos.x = bin.x + bin.w/2;
-            this.pos.y = bin.y + bin.h/2;
-            handleScore(bin.value, this.color, this.pos.x, this.pos.y);
-        }
-
-        draw(ctx) {
-            ctx.beginPath();
-            ctx.arc(this.pos.x, this.pos.y, this.radius, 0, Math.PI*2);
-            let fill = '#fff';
-            let glow = 'rgba(255,255,255,0.5)';
-            if (this.color === 'green') { fill = '#39ff14'; glow = '#39ff14'; }
-            if (this.color === 'red') { fill = '#ff003c'; glow = '#ff003c'; }
-            
-            ctx.shadowBlur = 20; ctx.shadowColor = glow; ctx.fillStyle = fill; ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.beginPath(); ctx.arc(this.pos.x - 4, this.pos.y - 4, 4, 0, Math.PI*2); ctx.fill();
-        }
-    }
-
-    // --- GAMEPLAY ---
-
-    function startGame() {
-        const p1Name = document.getElementById('p1Input').value || "P1";
-        const p2Name = document.getElementById('p2Input').value || "P2";
+    // --- SETUP ---
+    window.onload = function() {
+        canvas = document.getElementById('gameCanvas');
+        ctx = canvas.getContext('2d');
+        container = document.getElementById('stage-container');
         
-        players[0].name = p1Name;
-        players[1].name = p2Name;
+        initBoardGeometry();
+        createControls();
         
-        document.getElementById('name-0').innerText = p1Name;
-        document.getElementById('name-1').innerText = p2Name;
-        document.getElementById('score-0').innerText = "$0";
-        document.getElementById('score-1').innerText = "$0";
-        document.getElementById('gameLog').innerHTML = '';
-        
-        document.getElementById('start-screen').classList.add('hidden');
-        
-        currentPlayer = 0;
-        ballsRemaining = 3;
-        updateUI();
-        announceTurn();
-    }
+        // Resize Listener
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas(); // Initial trigger
 
-    function announceTurn() {
-        const popup = document.getElementById('turn-popup');
-        const name = players[currentPlayer].name;
-        
-        popup.innerText = `${name}'S TURN`;
-        popup.style.color = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
-        popup.style.borderColor = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
-        popup.style.opacity = 1;
-        
-        document.getElementById('p1-box').classList.toggle('active', currentPlayer === 0);
-        document.getElementById('p2-box').classList.toggle('active', currentPlayer === 1);
+        // Animation Loop
+        requestAnimationFrame(loop);
+    };
 
-        setTimeout(() => popup.style.opacity = 0, 1500);
-    }
-
-    function switchTurn() {
-        currentPlayer = currentPlayer === 0 ? 1 : 0;
+    function initGame() {
+        players[0].name = document.getElementById('p1Input').value || "Blue Team";
+        players[1].name = document.getElementById('p2Input').value || "Pink Team";
+        
+        document.getElementById('p1-name').innerText = players[0].name;
+        document.getElementById('p2-name').innerText = players[1].name;
+        
+        document.getElementById('modal-overlay').classList.add('hidden');
+        
+        turnIndex = 0;
         ballsRemaining = 3;
         balls = [];
+        isDropping = false;
+        
         updateUI();
         announceTurn();
     }
 
-    function toggleZone(id) {
-        if (isProcessing) return; 
-        if (balls.some(b => !b.hovering)) return;
+    function initBoardGeometry() {
+        // 1. Zones (Top)
+        const zoneW = V_WIDTH / DROP_ZONES;
+        for(let i=0; i<DROP_ZONES; i++) {
+            zones.push({id: i, x: i*zoneW, y: 0, w: zoneW, h: 80});
+        }
 
-        let existing = balls.findIndex(b => b.zoneId === id);
-        if (existing !== -1) {
-            balls.splice(existing, 1);
+        // 2. Pins (Staggered Grid)
+        // Adjusted to fill more of the board effectively
+        const rows = 18; // More rows
+        const cols = 15;
+        const startY = 120;
+        const endY = V_HEIGHT - 120;
+        const marginX = 40;
+        const availableW = V_WIDTH - (marginX*2);
+        
+        const colStep = availableW / (cols - 1);
+        const rowStep = (endY - startY) / (rows - 1);
+
+        for(let r=0; r<rows; r++) {
+            let isOffset = (r % 2 !== 0);
+            let pinsInRow = isOffset ? cols - 1 : cols;
+            let xStart = marginX + (isOffset ? colStep/2 : 0);
+            
+            for(let c=0; c<pinsInRow; c++) {
+                pins.push({
+                    x: xStart + (c * colStep),
+                    y: startY + (r * rowStep),
+                    r: 5 // Pin radius
+                });
+            }
+        }
+
+        // 3. Bins (Bottom)
+        const binW = V_WIDTH / 15;
+        for(let i=0; i<15; i++) {
+            bins.push({
+                x: i * binW,
+                y: V_HEIGHT - 100,
+                w: binW,
+                h: 100,
+                val: BIN_VALUES[i]
+            });
+        }
+    }
+
+    // --- RESIZE LOGIC (CRITICAL FOR "BIGGER BOARD") ---
+    function resizeCanvas() {
+        // We want to fit V_WIDTH/V_HEIGHT into container.clientWidth/clientHeight
+        // but MAXIMIZE the size.
+        const contW = container.clientWidth;
+        const contH = container.clientHeight;
+        
+        // Calculate aspect ratios
+        const targetAspect = V_WIDTH / V_HEIGHT;
+        const containerAspect = contW / contH;
+
+        if (containerAspect > targetAspect) {
+            // Container is wider than board -> Fit to Height
+            canvas.style.height = contH + 'px';
+            canvas.style.width = (contH * targetAspect) + 'px';
+            scale = contH / V_HEIGHT;
         } else {
+            // Container is taller than board -> Fit to Width
+            canvas.style.width = contW + 'px';
+            canvas.style.height = (contW / targetAspect) + 'px';
+            scale = contW / V_WIDTH;
+        }
+
+        // High DPI Scaling
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = parseFloat(canvas.style.width) * dpr;
+        canvas.height = parseFloat(canvas.style.height) * dpr;
+        
+        // Reset transform to identity then scale for DPR and Size
+        ctx.resetTransform();
+        ctx.scale(dpr * scale, dpr * scale);
+    }
+
+    // --- GAMEPLAY LOGIC ---
+
+    function createControls() {
+        const grid = document.getElementById('slotsGrid');
+        grid.innerHTML = '';
+        for(let i=0; i<DROP_ZONES; i++) {
+            let btn = document.createElement('div');
+            btn.className = 'slot-btn';
+            btn.innerText = i + 1;
+            btn.id = 'slotBtn-' + i;
+            btn.onclick = () => selectZone(i);
+            grid.appendChild(btn);
+        }
+    }
+
+    function selectZone(idx) {
+        if (isDropping) return;
+        
+        // Check if ball already there
+        const existingIdx = balls.findIndex(b => b.zoneId === idx && b.hovering);
+        if (existingIdx !== -1) {
+            // Remove
+            balls.splice(existingIdx, 1);
+        } else {
+            // Add if limit not reached
             if (balls.length < ballsRemaining) {
-                let z = zones[id];
-                balls.push(new Ball(z.x + z.w/2, z.y + z.h/2, id));
+                const z = zones[idx];
+                balls.push({
+                    x: z.x + z.w/2,
+                    y: z.y + 50,
+                    vx: 0, vy: 0,
+                    radius: 12, // Ball Size
+                    zoneId: idx,
+                    hovering: true,
+                    active: true,
+                    color: '#fff'
+                });
             }
         }
         updateUI();
     }
 
-    function triggerDrop(type) {
-        if (balls.length === 0 || balls.some(b => !b.hovering)) return;
-
-        isProcessing = true;
+    function dropBalls(type) {
+        if (balls.length === 0 || isDropping) return;
+        
+        isDropping = true;
         ballsRemaining -= balls.length;
 
         balls.forEach((b, i) => {
-            b.color = type;
+            b.color = (type === 'green') ? '#39ff14' : '#ff003c';
+            // Slight delay between drops for effect
             setTimeout(() => {
                 b.hovering = false;
-                b.vel.x = (Math.random()-0.5) * 5;
-                b.vel.y = 2;
+                b.vx = (Math.random() - 0.5) * 4; // Initial jitter
+                b.vy = 2;
             }, i * 200);
         });
 
         updateUI();
     }
 
-    function handleScore(val, type, x, y) {
-        let amt = (type === 'green') ? val : -val;
-        players[currentPlayer].score += amt;
+    function announceTurn() {
+        const p = players[turnIndex];
+        const overlay = document.getElementById('turn-overlay');
+        overlay.innerText = p.name + "'S TURN";
+        overlay.style.color = (turnIndex === 0) ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
+        overlay.style.borderColor = (turnIndex === 0) ? 'var(--neon-cyan)' : 'var(--neon-magenta)';
         
-        const scoreEl = document.getElementById(`score-${currentPlayer}`);
-        let s = players[currentPlayer].score;
-        scoreEl.innerText = (s < 0 ? "-" : "") + "$" + Math.abs(s).toLocaleString();
+        overlay.classList.add('visible');
         
-        const log = document.getElementById('gameLog');
-        const item = document.createElement('div');
-        item.className = 'log-entry';
-        let color = amt >= 0 ? '#39ff14' : '#ff003c';
-        let symbol = amt >= 0 ? '+' : '-';
-        item.innerHTML = `<span style="color:${color}">${symbol}$${val.toLocaleString()}</span> <span style="color:#666">${players[currentPlayer].name}</span>`;
-        log.prepend(item);
+        // Update Header Highlights
+        document.getElementById('p1-panel').className = (turnIndex === 0) ? 'team-panel active' : 'team-panel';
+        document.getElementById('p2-panel').className = (turnIndex === 1) ? 'team-panel active' : 'team-panel';
 
-        floats.push({
-            txt: symbol + "$" + shortNum(val),
-            x: x, y: y - 50, life: 1.0, 
-            color: color
-        });
-        spawnParticles(x, y, type);
-
-        if (balls.every(b => !b.active)) {
-            setTimeout(() => {
-                balls = [];
-                isProcessing = false;
-                if (ballsRemaining <= 0) {
-                    switchTurn();
-                } else {
-                    updateUI();
-                }
-            }, 1000);
-        }
+        setTimeout(() => overlay.classList.remove('visible'), 1500);
     }
 
-    function resetGame() {
-        location.reload(); 
-    }
-
-    function resize() {
-        // Critical Fix: Measure the stage, not the window
-        const cw = stage.clientWidth;
-        const ch = stage.clientHeight;
-        const scaleX = cw / V_WIDTH;
-        const scaleY = ch / V_HEIGHT;
-        scale = Math.min(scaleX, scaleY) * 0.95;
-        canvas.width = V_WIDTH * scale;
-        canvas.height = V_HEIGHT * scale;
-    }
-
-    function initBoard() {
-        const zoneW = V_WIDTH / DROP_ZONES;
-        for(let i=0; i<DROP_ZONES; i++) zones.push({ x: i * zoneW, y: 20, w: zoneW, h: 80, id: i });
-
-        const rows = 16; const cols = 15;
-        const startY = 150; const endY = V_HEIGHT - 150;
-        const usableW = V_WIDTH - 80;
-        const stepX = usableW / (cols - 1);
-        const stepY = (endY - startY) / rows;
-
-        for(let r=0; r<rows; r++) {
-            let count = (r % 2 === 0) ? cols : cols - 1;
-            let xOff = (r % 2 === 0) ? 40 : 40 + stepX/2;
-            for(let c=0; c<count; c++) pins.push({ x: xOff + (c * stepX), y: startY + (r * stepY), r: 5 });
-        }
-
-        const binW = V_WIDTH / 15;
-        for(let i=0; i<15; i++) bins.push({ x: i * binW, y: V_HEIGHT - 120, w: binW, h: 120, value: BIN_VALUES[i] });
-    }
-
-    function loop() {
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        ctx.save();
-        
-        const offsetX = (canvas.width - V_WIDTH * scale) / 2;
-        const offsetY = (canvas.height - V_HEIGHT * scale) / 2;
-        ctx.translate(offsetX, offsetY);
-        ctx.scale(scale, scale);
-
-        bins.forEach(b => {
-            let isGold = b.value >= 100000;
-            let grad = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
-            grad.addColorStop(0, isGold ? '#ffd700' : '#222');
-            grad.addColorStop(1, isGold ? '#b8860b' : '#000');
-            ctx.fillStyle = grad; ctx.fillRect(b.x, b.y, b.w, b.h);
-            
-            ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
-            
-            ctx.fillStyle = isGold ? 'black' : '#666';
-            ctx.font = 'bold 20px Rajdhani'; ctx.textAlign = 'center';
-            ctx.fillText(shortNum(b.value), b.x + b.w/2, b.y + 70);
-        });
-
-        ctx.fillStyle = 'white'; ctx.shadowBlur = 4; ctx.shadowColor = 'white';
-        pins.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); });
-        ctx.shadowBlur = 0;
-
-        zones.forEach(z => {
-            ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)'; ctx.lineWidth = 1;
-            ctx.strokeRect(z.x+5, z.y, z.w-10, z.h);
-            ctx.fillStyle = 'rgba(0, 243, 255, 0.4)'; ctx.font = 'bold 30px Orbitron';
-            ctx.fillText(z.id + 1, z.x + z.w/2, z.y + 50);
-        });
-
-        balls.forEach(b => { b.update(); b.draw(ctx); });
-        drawFX(ctx);
-
-        ctx.restore();
-        requestAnimationFrame(loop);
-    }
-
-    function drawFX(ctx) {
-        for(let i=particles.length-1; i>=0; i--) {
-            let p = particles[i];
-            p.x += p.vx; p.y += p.vy; p.life -= 0.02;
-            ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
-            ctx.globalAlpha = 1;
-            if (p.life <= 0) particles.splice(i, 1);
-        }
-        for(let i=floats.length-1; i>=0; i--) {
-            let f = floats[i];
-            f.y -= 1.5; f.life -= 0.015;
-            ctx.globalAlpha = Math.max(0, f.life);
-            ctx.fillStyle = f.color; ctx.font = '900 40px Orbitron';
-            ctx.strokeStyle = 'black'; ctx.lineWidth = 4;
-            ctx.strokeText(f.txt, f.x, f.y); ctx.fillText(f.txt, f.x, f.y);
-            ctx.globalAlpha = 1;
-            if (f.life <= 0) floats.splice(i, 1);
-        }
-    }
-
-    function spawnParticles(x, y, type) {
-        let c = type === 'green' ? '#39ff14' : '#ff003c';
-        for(let i=0; i<15; i++) {
-            particles.push({x, y, vx:(Math.random()-0.5)*8, vy:(Math.random()-0.5)*8, life:1.0, color:c});
-        }
-    }
-
-    function shortNum(n) {
-        if(n >= 1000000) return (n/1000000)+"M";
-        if(n >= 1000) return (n/1000)+"k";
-        return n;
-    }
-
-    function generateControls() {
-        const c = document.getElementById('slotsContainer');
-        c.innerHTML = '';
-        for(let i=0; i<DROP_ZONES; i++) {
-            let b = document.createElement('div');
-            b.className = 'slot-btn'; b.innerText = i+1; b.id = 'slot-'+i;
-            b.onclick = () => toggleZone(i);
-            c.appendChild(b);
-        }
+    function switchTurn() {
+        turnIndex = (turnIndex === 0) ? 1 : 0;
+        ballsRemaining = 3;
+        balls = [];
+        isDropping = false;
+        updateUI();
+        announceTurn();
     }
 
     function updateUI() {
+        // Update Slots
         for(let i=0; i<DROP_ZONES; i++) {
-            let btn = document.getElementById('slot-'+i);
-            if(balls.some(b => b.zoneId === i)) btn.classList.add('active');
-            else btn.classList.remove('active');
+            let btn = document.getElementById('slotBtn-'+i);
+            let hasBall = balls.some(b => b.zoneId === i);
+            btn.className = hasBall ? 'slot-btn active' : 'slot-btn';
         }
+
+        // Count
         document.getElementById('ballCount').innerText = balls.length + "/" + ballsRemaining;
 
-        const locked = balls.length === 0 || balls.some(b => !b.hovering) || isProcessing;
-        document.getElementById('btnGreen').className = 'action-btn btn-green ' + (locked?'':'ready');
-        document.getElementById('btnRed').className = 'action-btn btn-red ' + (locked?'':'ready');
+        // Buttons
+        const canDrop = (balls.length > 0 && !isDropping);
+        document.getElementById('btnCorrect').className = canDrop ? 'action-btn btn-green ready' : 'action-btn btn-green';
+        document.getElementById('btnWrong').className = canDrop ? 'action-btn btn-red ready' : 'action-btn btn-red';
     }
 
-    initBoard();
-    generateControls();
-    resize();
-    window.addEventListener('resize', resize);
-    loop();
+    function addLog(val, type) {
+        const log = document.getElementById('gameLog');
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        const symbol = (type === 'green') ? '+' : '-';
+        const color = (type === 'green') ? 'var(--neon-green)' : 'var(--neon-red)';
+        
+        div.innerHTML = `
+            <span style="color:${color}; font-weight:bold;">${symbol}$${val.toLocaleString()}</span>
+            <span>${players[turnIndex].name}</span>
+        `;
+        log.prepend(div);
+    }
+
+    function resetGame() {
+        location.reload();
+    }
+
+    // --- PHYSICS LOOP ---
+    function loop() {
+        // Clear canvas
+        ctx.clearRect(0, 0, V_WIDTH, V_HEIGHT);
+
+        // 1. Draw Background Grid (Subtle)
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath();
+        for(let x=0; x<=V_WIDTH; x+=100) { ctx.moveTo(x,0); ctx.lineTo(x,V_HEIGHT); }
+        for(let y=0; y<=V_HEIGHT; y+=100) { ctx.moveTo(0,y); ctx.lineTo(V_WIDTH,y); }
+        ctx.stroke();
+
+        // 2. Draw Bins
+        bins.forEach(b => {
+            let isGold = b.val >= 100000;
+            // Gradient fill
+            let grad = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
+            grad.addColorStop(0, isGold ? 'rgba(255, 215, 0, 0.2)' : 'rgba(30, 30, 30, 0.5)');
+            grad.addColorStop(1, isGold ? 'rgba(184, 134, 11, 0.6)' : 'rgba(0,0,0,0.8)');
+            
+            ctx.fillStyle = grad;
+            ctx.fillRect(b.x+2, b.y, b.w-4, b.h);
+
+            // Border
+            ctx.strokeStyle = '#333';
+            ctx.strokeRect(b.x+2, b.y, b.w-4, b.h);
+
+            // Text
+            ctx.fillStyle = isGold ? '#ffd700' : '#888';
+            ctx.font = 'bold 20px Rajdhani';
+            ctx.textAlign = 'center';
+            // Compact number format
+            let txt = b.val >= 1000 ? (b.val/1000) + 'k' : b.val;
+            if(b.val === 1000000) txt = '1M';
+            ctx.fillText(txt, b.x + b.w/2, b.y + 65);
+        });
+
+        // 3. Draw Pins
+        ctx.fillStyle = '#fff';
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = 'rgba(255,255,255,0.5)';
+        pins.forEach(p => {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+            ctx.fill();
+        });
+        ctx.shadowBlur = 0; // Reset shadow
+
+        // 4. Draw Zones (Top)
+        zones.forEach(z => {
+            ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(z.x+5, z.y+10, z.w-10, 60);
+            
+            ctx.fillStyle = 'rgba(0, 243, 255, 0.3)';
+            ctx.font = 'bold 30px Orbitron';
+            ctx.textAlign = 'center';
+            ctx.fillText(z.id + 1, z.x + z.w/2, z.y + 50);
+        });
+
+        // 5. Update & Draw Balls
+        balls.forEach(b => {
+            if (!b.active) return;
+
+            if (!b.hovering) {
+                // Physics
+                b.vy += GRAVITY;
+                b.vx *= FRICTION;
+                b.vy *= FRICTION;
+                
+                b.x += b.vx;
+                b.y += b.vy;
+
+                // Walls
+                if (b.x < b.radius) { b.x = b.radius; b.vx *= -0.5; }
+                if (b.x > V_WIDTH - b.radius) { b.x = V_WIDTH - b.radius; b.vx *= -0.5; }
+
+                // Pins Collision
+                for(let p of pins) {
+                    let dx = b.x - p.x;
+                    let dy = b.y - p.y;
+                    let distSq = dx*dx + dy*dy;
+                    let minDist = b.radius + p.r;
+                    
+                    if (distSq < minDist*minDist) {
+                        let dist = Math.sqrt(distSq);
+                        let nx = dx / dist;
+                        let ny = dy / dist;
+                        
+                        // Bounce logic
+                        let vDotN = (b.vx * nx) + (b.vy * ny);
+                        
+                        b.vx = b.vx - 2 * vDotN * nx;
+                        b.vy = b.vy - 2 * vDotN * ny;
+                        
+                        // Add randomness (Chaos)
+                        b.vx += (Math.random()-0.5); 
+                        
+                        // Restitution
+                        b.vx *= RESTITUTION;
+                        b.vy *= RESTITUTION;
+
+                        // Separate
+                        let overlap = minDist - dist;
+                        b.x += nx * overlap;
+                        b.y += ny * overlap;
+                    }
+                }
+
+                // Bin Detection
+                if (b.y > V_HEIGHT - 100) {
+                    for(let bin of bins) {
+                        if (b.x > bin.x && b.x < bin.x + bin.w) {
+                            // Landed
+                            b.active = false;
+                            
+                            // Score Logic
+                            let val = bin.val;
+                            let isGreen = (b.color === '#39ff14'); // check green hex
+                            let amt = isGreen ? val : -val;
+                            players[turnIndex].score += amt;
+                            
+                            // Update Text Score
+                            let s = players[turnIndex].score;
+                            let el = document.getElementById(turnIndex === 0 ? 'p1-score' : 'p2-score');
+                            el.innerText = (s < 0 ? "-" : "") + "$" + Math.abs(s).toLocaleString();
+                            
+                            // Add Log
+                            addLog(val, isGreen ? 'green' : 'red');
+                            
+                            // Float FX
+                            floats.push({
+                                x: b.x, y: b.y - 50,
+                                txt: (isGreen?'+':'-') + '$' + bin.val.toLocaleString(),
+                                color: b.color,
+                                life: 1.0
+                            });
+                        }
+                    }
+                }
+            } // end if !hovering
+
+            // Draw Ball
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, b.radius, 0, Math.PI*2);
+            ctx.fillStyle = b.color;
+            ctx.shadowColor = b.color;
+            ctx.shadowBlur = 10;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        });
+
+        // 6. FX (Floats)
+        for(let i=floats.length-1; i>=0; i--) {
+            let f = floats[i];
+            f.y -= 1;
+            f.life -= 0.015;
+            
+            ctx.globalAlpha = Math.max(0, f.life);
+            ctx.fillStyle = f.color;
+            ctx.font = 'bold 36px Orbitron';
+            ctx.textAlign = 'center';
+            ctx.fillText(f.txt, f.x, f.y);
+            ctx.globalAlpha = 1;
+
+            if (f.life <= 0) floats.splice(i, 1);
+        }
+
+        // Check Round End
+        if (isDropping && balls.every(b => !b.active) && floats.length === 0) {
+            if (ballsRemaining <= 0) {
+                switchTurn();
+            } else {
+                isDropping = false;
+                balls = [];
+                updateUI();
+            }
+        }
+
+        requestAnimationFrame(loop);
+    }
 
 </script>
 </body>
