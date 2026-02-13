@@ -13,21 +13,198 @@
             --neon-green: #39ff14;
             --neon-red: #ff003c;
             --bg-dark: #050505;
-            --panel-bg: rgba(15, 20, 30, 0.95);
+            --panel-bg: #0a0a0a;
         }
 
+        /* --- MAIN LAYOUT ENGINE --- */
         body {
             margin: 0;
+            padding: 0;
             background-color: var(--bg-dark);
             color: white;
             font-family: 'Rajdhani', sans-serif;
             overflow: hidden;
-            height: 100vh;
             width: 100vw;
-            display: flex;
+            height: 100vh;
+            /* CRITICAL: This splits the screen left/right */
+            display: flex; 
+            flex-direction: row; 
         }
 
-        /* --- START SCREEN --- */
+        /* --- LEFT COLUMN: CONTROLS --- */
+        #control-panel {
+            width: 360px; /* Fixed width */
+            height: 100vh;
+            background: var(--panel-bg);
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-sizing: border-box;
+            z-index: 20; /* High Z-index to stay on top */
+            flex-shrink: 0; /* Never shrink */
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+        }
+
+        /* --- RIGHT COLUMN: GAME STAGE --- */
+        #game-stage {
+            flex-grow: 1; /* Takes ALL remaining space */
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle at center, #1a2233 0%, #000 90%);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        canvas { 
+            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+        }
+
+        /* --- UI OVERLAYS (Inside Game Stage) --- */
+        
+        /* Scores */
+        .score-box {
+            position: absolute;
+            top: 20px;
+            padding: 15px 25px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            border-radius: 4px;
+            min-width: 180px;
+            transition: all 0.3s;
+        }
+        
+        #p1-box {
+            left: 20px;
+            border-left: 4px solid #444;
+        }
+        #p1-box.active {
+            border-left: 4px solid var(--neon-blue);
+            background: rgba(0, 50, 60, 0.8);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
+        }
+
+        #p2-box {
+            right: 20px;
+            text-align: right;
+            border-right: 4px solid #444;
+        }
+        #p2-box.active {
+            border-right: 4px solid var(--neon-pink);
+            background: rgba(50, 0, 60, 0.8);
+            box-shadow: 0 0 20px rgba(188, 19, 254, 0.1);
+        }
+
+        .p-label { font-family: 'Orbitron'; font-size: 12px; color: #888; letter-spacing: 2px; margin-bottom: 5px; }
+        .p-score { font-family: 'Orbitron'; font-size: 28px; font-weight: 700; color: white; }
+        
+        #p1-box.active .p-score { color: var(--neon-blue); }
+        #p2-box.active .p-score { color: var(--neon-pink); }
+
+        /* Turn Indicator */
+        #turn-popup {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            border: 2px solid white;
+            padding: 20px 40px;
+            font-family: 'Orbitron';
+            font-size: 40px;
+            font-weight: 900;
+            text-transform: uppercase;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 50;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+            border-radius: 8px;
+        }
+
+        /* --- CONTROL PANEL STYLES --- */
+        .panel-header h2 { 
+            margin: 0; 
+            font-family: 'Orbitron'; 
+            font-size: 24px; 
+            color: #fff; 
+            text-align: center;
+            border-bottom: 1px solid #333;
+            padding-bottom: 15px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+        }
+
+        .control-group {
+            background: #111;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+        }
+        
+        .group-label {
+            font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; 
+            text-transform: uppercase; display: flex; justify-content: space-between;
+        }
+
+        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .slot-btn {
+            background: #1a1a1a; border: 1px solid #333; color: #555;
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-family: 'Orbitron'; font-weight: bold; font-size: 14px;
+            transition: 0.1s;
+            border-radius: 3px;
+        }
+        .slot-btn:hover { border-color: var(--neon-blue); color: #fff; background: #222; }
+        .slot-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .action-btn {
+            padding: 15px; border: none; font-family: 'Orbitron'; font-weight: 900; 
+            font-size: 14px; cursor: pointer; opacity: 0.3; pointer-events: none;
+            text-transform: uppercase; color: #000;
+            border-radius: 4px;
+        }
+        .action-btn.ready { opacity: 1; pointer-events: all; }
+        
+        .btn-green { background: var(--neon-green); box-shadow: 0 4px 0 #004400; }
+        .btn-green:active { box-shadow: 0 0 0; transform: translateY(4px); }
+        
+        .btn-red { background: var(--neon-red); color: white; box-shadow: 0 4px 0 #440000; }
+        .btn-red:active { box-shadow: 0 0 0; transform: translateY(4px); }
+
+        /* Log */
+        .log-box {
+            flex-grow: 1;
+            background: #000;
+            border: 1px solid #222;
+            padding: 10px;
+            margin-top: 15px;
+            overflow-y: auto;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 11px;
+            color: #888;
+            border-radius: 4px;
+        }
+        .log-entry { 
+            padding: 6px 0; 
+            border-bottom: 1px solid #111; 
+            display: flex; justify-content: space-between;
+        }
+
+        .reset-btn {
+            background: transparent; border: 1px solid #333; color: #555; 
+            padding: 12px; cursor: pointer; font-family: 'Orbitron'; 
+            font-size: 12px; transition: 0.2s; margin-top: 15px;
+            width: 100%; border-radius: 4px;
+        }
+        .reset-btn:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
+
+        /* --- START MODAL --- */
         #start-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -50,7 +227,6 @@
             box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
             width: 300px;
         }
-
         .modal-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 32px;
@@ -61,7 +237,6 @@
             border-bottom: 1px solid #333;
             padding-bottom: 10px;
         }
-
         .input-group { margin-bottom: 20px; text-align: left; }
         label { display: block; color: var(--neon-blue); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
         input[type="text"] {
@@ -76,7 +251,6 @@
             box-sizing: border-box;
         }
         input[type="text"]:focus { border-color: var(--neon-blue); }
-
         .start-btn {
             background: var(--neon-blue);
             border: none;
@@ -92,173 +266,11 @@
         }
         .start-btn:hover { background: white; box-shadow: 0 0 20px var(--neon-blue); }
 
-        /* --- GAME LAYOUT --- */
-        #game-stage {
-            flex: 1;
-            position: relative;
-            background: radial-gradient(circle at center, #1a2233 0%, #000 90%);
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        canvas { 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
-        }
-
-        /* --- SCOREBOARD OVERLAY --- */
-        
-        /* Player 1 - Top Left */
-        .score-box {
-            position: absolute;
-            top: 20px;
-            padding: 15px 25px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #333;
-            border-radius: 4px;
-            min-width: 180px;
-            transition: all 0.3s;
-        }
-        
-        #p1-box {
-            left: 20px;
-            border-left: 4px solid #444;
-        }
-        #p1-box.active {
-            border-left: 4px solid var(--neon-blue);
-            background: rgba(0, 50, 60, 0.8);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
-        }
-
-        /* Player 2 - Top Right */
-        #p2-box {
-            right: 20px;
-            text-align: right;
-            border-right: 4px solid #444;
-        }
-        #p2-box.active {
-            border-right: 4px solid var(--neon-pink);
-            background: rgba(50, 0, 60, 0.8);
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.1);
-        }
-
-        .p-label { font-family: 'Orbitron'; font-size: 12px; color: #888; letter-spacing: 2px; margin-bottom: 5px; }
-        .p-score { font-family: 'Orbitron'; font-size: 28px; font-weight: 700; color: white; }
-        
-        #p1-box.active .p-score { color: var(--neon-blue); }
-        #p2-box.active .p-score { color: var(--neon-pink); }
-
-        /* Turn Indicator - CENTERED POPUP */
-        #turn-popup {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            border: 2px solid white;
-            padding: 20px 40px;
-            font-family: 'Orbitron';
-            font-size: 40px;
-            font-weight: 900;
-            text-transform: uppercase;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: 50;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-
-        /* --- CONTROLS (RIGHT) --- */
-        #control-panel {
-            width: 350px;
-            background: #0a0a0a;
-            border-left: 1px solid #222;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            gap: 20px;
-            z-index: 10;
-        }
-
-        .panel-header h2 { 
-            margin: 0; 
-            font-family: 'Orbitron'; 
-            font-size: 20px; 
-            color: #fff; 
-            text-align: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-            letter-spacing: 2px;
-        }
-
-        .control-group {
-            background: #111;
-            border: 1px solid #333;
-            padding: 15px;
-            border-radius: 4px;
-        }
-        
-        .group-label {
-            font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; 
-            text-transform: uppercase; display: flex; justify-content: space-between;
-        }
-
-        /* Slots */
-        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .slot-btn {
-            background: #1a1a1a; border: 1px solid #333; color: #555;
-            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-family: 'Orbitron'; font-weight: bold; font-size: 14px;
-            transition: 0.1s;
-        }
-        .slot-btn:hover { border-color: #666; color: #fff; background: #222; }
-        .slot-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
-
-        /* Action Buttons */
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .action-btn {
-            padding: 15px; border: none; font-family: 'Orbitron'; font-weight: 900; 
-            font-size: 14px; cursor: pointer; opacity: 0.3; pointer-events: none;
-            text-transform: uppercase; color: #000;
-        }
-        .action-btn.ready { opacity: 1; pointer-events: all; }
-        
-        .btn-green { background: var(--neon-green); box-shadow: inset 0 -3px 0 rgba(0,0,0,0.5); }
-        .btn-green:hover { filter: brightness(1.2); }
-        
-        .btn-red { background: var(--neon-red); color: white; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.5); }
-        .btn-red:hover { filter: brightness(1.2); }
-
-        /* Log */
-        .log-box {
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid #222;
-            padding: 10px;
-            overflow-y: auto;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 11px;
-            color: #888;
-        }
-        .log-entry { 
-            padding: 4px 0; 
-            border-bottom: 1px solid #111; 
-            display: flex; justify-content: space-between;
-        }
-
-        .reset-btn {
-            background: transparent; border: 1px solid #333; color: #555; 
-            padding: 10px; cursor: pointer; font-family: 'Orbitron'; 
-            font-size: 12px; transition: 0.2s;
-        }
-        .reset-btn:hover { border-color: #666; color: #fff; }
-
     </style>
 </head>
 <body>
 
-<!-- START MODAL -->
+<!-- START SCREEN -->
 <div id="start-screen">
     <div class="modal-box">
         <div class="modal-title">THE WALL</div>
@@ -274,59 +286,55 @@
     </div>
 </div>
 
-<div id="app-container">
+<!-- CONTROLS (LEFT SIDE) -->
+<div id="control-panel">
+    <div class="panel-header">
+        <h2>CONTROLS</h2>
+    </div>
+
+    <!-- Zone Selector -->
+    <div class="control-group">
+        <div class="group-label">
+            <span>Select Zones</span>
+            <span id="ballCount" style="color:white">0/3</span>
+        </div>
+        <div class="slots-grid" id="slotsContainer"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="control-group">
+        <div class="group-label">Reveal Result</div>
+        <div class="btn-row">
+            <button class="action-btn btn-green" id="btnGreen" onclick="triggerDrop('green')">CORRECT</button>
+            <button class="action-btn btn-red" id="btnRed" onclick="triggerDrop('red')">WRONG</button>
+        </div>
+    </div>
+
+    <!-- Log -->
+    <div class="group-label" style="margin-top: 20px;">Transaction Log</div>
+    <div class="log-box" id="gameLog">
+        <div style="text-align:center; padding-top:20px;">Waiting for drop...</div>
+    </div>
+
+    <button class="reset-btn" onclick="resetGame()">RESET MATCH</button>
+</div>
+
+<!-- GAME STAGE (RIGHT SIDE) -->
+<div id="game-stage">
+    <canvas id="wallCanvas"></canvas>
     
-    <!-- GAME AREA -->
-    <div id="game-stage">
-        <canvas id="wallCanvas"></canvas>
-        
-        <!-- UI OVERLAYS -->
-        <div id="p1-box" class="score-box active">
-            <div class="p-label" id="name-0">PLAYER 1</div>
-            <div class="p-score" id="score-0">$0</div>
-        </div>
-
-        <div id="p2-box" class="score-box">
-            <div class="p-label" id="name-1">PLAYER 2</div>
-            <div class="p-score" id="score-1">$0</div>
-        </div>
-
-        <div id="turn-popup">PLAYER 1 START</div>
+    <!-- UI OVERLAYS (Floating above canvas) -->
+    <div id="p1-box" class="score-box active">
+        <div class="p-label" id="name-0">PLAYER 1</div>
+        <div class="p-score" id="score-0">$0</div>
     </div>
 
-    <!-- SIDE PANEL -->
-    <div id="control-panel">
-        <div class="panel-header">
-            <h2>CONTROLS</h2>
-        </div>
-
-        <!-- Zone Selector -->
-        <div class="control-group">
-            <div class="group-label">
-                <span>Select Zones</span>
-                <span id="ballCount" style="color:white">0/3</span>
-            </div>
-            <div class="slots-grid" id="slotsContainer"></div>
-        </div>
-
-        <!-- Actions -->
-        <div class="control-group">
-            <div class="group-label">Reveal Result</div>
-            <div class="btn-row">
-                <button class="action-btn btn-green" id="btnGreen" onclick="triggerDrop('green')">CORRECT</button>
-                <button class="action-btn btn-red" id="btnRed" onclick="triggerDrop('red')">WRONG</button>
-            </div>
-        </div>
-
-        <!-- Log -->
-        <div class="group-label">Transaction Log</div>
-        <div class="log-box" id="gameLog">
-            <div style="text-align:center; padding-top:20px;">Waiting for drop...</div>
-        </div>
-
-        <button class="reset-btn" onclick="resetGame()">RESET GAME</button>
+    <div id="p2-box" class="score-box">
+        <div class="p-label" id="name-1">PLAYER 2</div>
+        <div class="p-score" id="score-1">$0</div>
     </div>
 
+    <div id="turn-popup">PLAYER 1 START</div>
 </div>
 
 <script>
@@ -466,7 +474,6 @@
         popup.style.borderColor = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
         popup.style.opacity = 1;
         
-        // Active states for boxes
         document.getElementById('p1-box').classList.toggle('active', currentPlayer === 0);
         document.getElementById('p2-box').classList.toggle('active', currentPlayer === 1);
 
@@ -519,12 +526,10 @@
         let amt = (type === 'green') ? val : -val;
         players[currentPlayer].score += amt;
         
-        // DOM Update
         const scoreEl = document.getElementById(`score-${currentPlayer}`);
         let s = players[currentPlayer].score;
         scoreEl.innerText = (s < 0 ? "-" : "") + "$" + Math.abs(s).toLocaleString();
         
-        // Log Update
         const log = document.getElementById('gameLog');
         const item = document.createElement('div');
         item.className = 'log-entry';
@@ -533,7 +538,6 @@
         item.innerHTML = `<span style="color:${color}">${symbol}$${val.toLocaleString()}</span> <span style="color:#666">${players[currentPlayer].name}</span>`;
         log.prepend(item);
 
-        // Visuals
         floats.push({
             txt: symbol + "$" + shortNum(val),
             x: x, y: y - 50, life: 1.0, 
@@ -541,7 +545,6 @@
         });
         spawnParticles(x, y, type);
 
-        // Check Round End
         if (balls.every(b => !b.active)) {
             setTimeout(() => {
                 balls = [];
@@ -559,9 +562,8 @@
         location.reload(); 
     }
 
-    // --- SETUP & LOOP ---
-
     function resize() {
+        // Critical Fix: Measure the stage, not the window
         const cw = stage.clientWidth;
         const ch = stage.clientHeight;
         const scaleX = cw / V_WIDTH;
@@ -600,7 +602,6 @@
         ctx.translate(offsetX, offsetY);
         ctx.scale(scale, scale);
 
-        // Bins
         bins.forEach(b => {
             let isGold = b.value >= 100000;
             let grad = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
@@ -615,12 +616,10 @@
             ctx.fillText(shortNum(b.value), b.x + b.w/2, b.y + 70);
         });
 
-        // Pins
         ctx.fillStyle = 'white'; ctx.shadowBlur = 4; ctx.shadowColor = 'white';
         pins.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); });
         ctx.shadowBlur = 0;
 
-        // Zones
         zones.forEach(z => {
             ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)'; ctx.lineWidth = 1;
             ctx.strokeRect(z.x+5, z.y, z.w-10, z.h);
@@ -636,7 +635,6 @@
     }
 
     function drawFX(ctx) {
-        // Particles
         for(let i=particles.length-1; i>=0; i--) {
             let p = particles[i];
             p.x += p.vx; p.y += p.vy; p.life -= 0.02;
@@ -645,7 +643,6 @@
             ctx.globalAlpha = 1;
             if (p.life <= 0) particles.splice(i, 1);
         }
-        // Text
         for(let i=floats.length-1; i>=0; i--) {
             let f = floats[i];
             f.y -= 1.5; f.life -= 0.015;
