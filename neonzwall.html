@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Wall: Dual Duel</title>
+    <title>The Wall: Studio Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;700&display=swap');
 
@@ -13,10 +13,9 @@
             --neon-green: #39ff14;
             --neon-red: #ff003c;
             --bg-dark: #050505;
-            --panel-bg: #0a0a0a;
+            --panel-bg: #0b0c10;
         }
 
-        /* --- MAIN LAYOUT ENGINE --- */
         body {
             margin: 0;
             padding: 0;
@@ -26,148 +25,156 @@
             overflow: hidden;
             width: 100vw;
             height: 100vh;
-            /* CRITICAL: This splits the screen left/right */
             display: flex; 
             flex-direction: row; 
         }
 
         /* --- LEFT COLUMN: CONTROLS --- */
         #control-panel {
-            width: 360px; /* Fixed width */
+            width: 380px;
             height: 100vh;
             background: var(--panel-bg);
-            border-right: 1px solid #333;
+            border-right: 1px solid #222;
             display: flex;
             flex-direction: column;
-            padding: 20px;
+            padding: 24px;
             box-sizing: border-box;
-            z-index: 20; /* High Z-index to stay on top */
-            flex-shrink: 0; /* Never shrink */
-            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            z-index: 20;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
 
-        /* --- RIGHT COLUMN: GAME STAGE --- */
-        #game-stage {
-            flex-grow: 1; /* Takes ALL remaining space */
+        /* --- RIGHT COLUMN: GAME AREA --- */
+        #right-column {
+            flex-grow: 1;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #000;
+        }
+
+        /* 1. TOP HEADER (Scores) - MOVED OFF CANVAS */
+        #game-header {
+            height: 100px;
+            background: #080808;
+            border-bottom: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 15;
+        }
+
+        .team-display {
+            display: flex;
+            flex-direction: column;
+            min-width: 150px;
+            transition: all 0.3s;
+            opacity: 0.5;
+        }
+        .team-display.active {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+        
+        #p1-display { align-items: flex-start; border-left: 4px solid #333; padding-left: 15px; }
+        #p1-display.active { border-left-color: var(--neon-blue); text-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+        
+        #p2-display { align-items: flex-end; border-right: 4px solid #333; padding-right: 15px; }
+        #p2-display.active { border-right-color: var(--neon-pink); text-shadow: 0 0 15px rgba(188, 19, 254, 0.3); }
+
+        .team-name { font-family: 'Orbitron'; font-size: 14px; color: #888; letter-spacing: 2px; margin-bottom: 5px; text-transform: uppercase; }
+        .team-score { font-family: 'Orbitron'; font-size: 38px; font-weight: 900; color: white; }
+        
+        #p1-display.active .team-score { color: var(--neon-blue); }
+        #p2-display.active .team-score { color: var(--neon-pink); }
+
+        /* 2. GAME STAGE (Canvas) */
+        #game-stage {
+            flex-grow: 1;
             position: relative;
             background: radial-gradient(circle at center, #1a2233 0%, #000 90%);
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10;
         }
 
         canvas { 
-            box-shadow: 0 0 50px rgba(0,0,0,0.8); 
+            box-shadow: 0 0 80px rgba(0, 243, 255, 0.05); 
         }
 
-        /* --- UI OVERLAYS (Inside Game Stage) --- */
-        
-        /* Scores */
-        .score-box {
-            position: absolute;
-            top: 20px;
-            padding: 15px 25px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #333;
-            border-radius: 4px;
-            min-width: 180px;
-            transition: all 0.3s;
-        }
-        
-        #p1-box {
-            left: 20px;
-            border-left: 4px solid #444;
-        }
-        #p1-box.active {
-            border-left: 4px solid var(--neon-blue);
-            background: rgba(0, 50, 60, 0.8);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
-        }
-
-        #p2-box {
-            right: 20px;
-            text-align: right;
-            border-right: 4px solid #444;
-        }
-        #p2-box.active {
-            border-right: 4px solid var(--neon-pink);
-            background: rgba(50, 0, 60, 0.8);
-            box-shadow: 0 0 20px rgba(188, 19, 254, 0.1);
-        }
-
-        .p-label { font-family: 'Orbitron'; font-size: 12px; color: #888; letter-spacing: 2px; margin-bottom: 5px; }
-        .p-score { font-family: 'Orbitron'; font-size: 28px; font-weight: 700; color: white; }
-        
-        #p1-box.active .p-score { color: var(--neon-blue); }
-        #p2-box.active .p-score { color: var(--neon-pink); }
-
-        /* Turn Indicator */
+        /* Turn Indicator (Floating) */
         #turn-popup {
             position: absolute;
-            top: 50%; left: 50%;
+            top: 40%; left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            border: 2px solid white;
-            padding: 20px 40px;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 20px 50px;
             font-family: 'Orbitron';
-            font-size: 40px;
+            font-size: 32px;
             font-weight: 900;
             text-transform: uppercase;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s;
+            transition: all 0.3s ease-out;
             z-index: 50;
             text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,1);
             border-radius: 8px;
+            color: white;
+            white-space: nowrap;
         }
+        #turn-popup.show { opacity: 1; top: 50%; }
 
         /* --- CONTROL PANEL STYLES --- */
         .panel-header h2 { 
             margin: 0; 
             font-family: 'Orbitron'; 
-            font-size: 24px; 
+            font-size: 28px; 
             color: #fff; 
             text-align: center;
-            border-bottom: 1px solid #333;
-            padding-bottom: 15px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(255,255,255,0.2);
+            border-bottom: 2px solid #222;
+            padding-bottom: 20px;
+            letter-spacing: 4px;
         }
 
         .control-group {
-            background: #111;
-            border: 1px solid #333;
-            padding: 15px;
-            border-radius: 6px;
-            margin-top: 15px;
+            background: #15161a;
+            border: 1px solid #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
         }
         
         .group-label {
-            font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 10px; 
-            text-transform: uppercase; display: flex; justify-content: space-between;
+            font-size: 11px; color: #666; letter-spacing: 1px; margin-bottom: 12px; 
+            text-transform: uppercase; display: flex; justify-content: space-between; font-weight: 700;
         }
 
-        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .slots-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
         .slot-btn {
-            background: #1a1a1a; border: 1px solid #333; color: #555;
+            background: #1a1a1a; 
+            border: 1px solid #333; color: #555;
             aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-family: 'Orbitron'; font-weight: bold; font-size: 14px;
-            transition: 0.1s;
-            border-radius: 3px;
+            cursor: pointer; font-family: 'Orbitron'; font-weight: bold; font-size: 16px;
+            transition: all 0.1s;
+            border-radius: 4px;
         }
         .slot-btn:hover { border-color: var(--neon-blue); color: #fff; background: #222; }
-        .slot-btn.active { background: #fff; color: #000; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
+        .slot-btn.active { 
+            background: white; color: black; border-color: white; 
+            box-shadow: 0 0 15px rgba(255,255,255,0.5); 
+        }
 
-        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .action-btn {
-            padding: 15px; border: none; font-family: 'Orbitron'; font-weight: 900; 
-            font-size: 14px; cursor: pointer; opacity: 0.3; pointer-events: none;
+            padding: 18px; border: none; font-family: 'Orbitron'; font-weight: 900; 
+            font-size: 15px; cursor: pointer; opacity: 0.4; pointer-events: none;
             text-transform: uppercase; color: #000;
-            border-radius: 4px;
+            border-radius: 6px;
+            letter-spacing: 1px;
         }
         .action-btn.ready { opacity: 1; pointer-events: all; }
         
@@ -177,32 +184,32 @@
         .btn-red { background: var(--neon-red); color: white; box-shadow: 0 4px 0 #440000; }
         .btn-red:active { box-shadow: 0 0 0; transform: translateY(4px); }
 
-        /* Log */
         .log-box {
             flex-grow: 1;
-            background: #000;
+            background: #050505;
             border: 1px solid #222;
-            padding: 10px;
-            margin-top: 15px;
+            padding: 15px;
+            margin-top: 20px;
             overflow-y: auto;
             font-family: 'Roboto Mono', monospace;
             font-size: 11px;
             color: #888;
-            border-radius: 4px;
+            border-radius: 6px;
         }
         .log-entry { 
-            padding: 6px 0; 
-            border-bottom: 1px solid #111; 
+            padding: 8px 0; 
+            border-bottom: 1px solid #1a1a1a; 
             display: flex; justify-content: space-between;
         }
 
         .reset-btn {
-            background: transparent; border: 1px solid #333; color: #555; 
-            padding: 12px; cursor: pointer; font-family: 'Orbitron'; 
-            font-size: 12px; transition: 0.2s; margin-top: 15px;
-            width: 100%; border-radius: 4px;
+            background: transparent; border: 1px solid #333; color: #666; 
+            padding: 15px; cursor: pointer; font-family: 'Orbitron'; 
+            font-size: 12px; transition: 0.2s; margin-top: 20px;
+            width: 100%; border-radius: 6px; letter-spacing: 2px;
+            text-transform: uppercase;
         }
-        .reset-btn:hover { border-color: #666; color: #fff; background: rgba(255,255,255,0.05); }
+        .reset-btn:hover { border-color: var(--neon-red); color: var(--neon-red); }
 
         /* --- START MODAL --- */
         #start-screen {
@@ -219,52 +226,56 @@
         #start-screen.hidden { opacity: 0; pointer-events: none; }
 
         .modal-box {
-            background: rgba(20, 25, 35, 1);
-            border: 2px solid var(--neon-blue);
-            padding: 40px;
-            border-radius: 8px;
+            background: #111;
+            border: 1px solid #333;
+            padding: 50px;
+            border-radius: 12px;
             text-align: center;
-            box-shadow: 0 0 50px rgba(0, 243, 255, 0.15);
-            width: 300px;
+            box-shadow: 0 0 80px rgba(0, 243, 255, 0.1);
+            width: 340px;
         }
+
         .modal-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 32px;
-            margin-bottom: 30px;
+            font-size: 42px;
+            margin-bottom: 40px;
             color: white;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            letter-spacing: 6px;
+            font-weight: 900;
         }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; color: var(--neon-blue); font-size: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;}
+        .input-group { margin-bottom: 25px; text-align: left; }
+        label { display: block; color: var(--neon-blue); font-size: 11px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;}
         input[type="text"] {
             width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid #444;
+            background: #0a0a0a;
+            border: 1px solid #333;
             color: white;
-            padding: 10px;
+            padding: 14px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
+            font-size: 18px;
             outline: none;
             box-sizing: border-box;
+            border-radius: 4px;
         }
         input[type="text"]:focus { border-color: var(--neon-blue); }
         .start-btn {
             background: var(--neon-blue);
             border: none;
             color: black;
-            padding: 15px 0;
+            padding: 18px 0;
             width: 100%;
             font-family: 'Orbitron', sans-serif;
             font-size: 18px;
             font-weight: 900;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             transition: 0.2s;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .start-btn:hover { background: white; box-shadow: 0 0 20px var(--neon-blue); }
+        .start-btn:hover { background: white; }
 
     </style>
 </head>
@@ -275,66 +286,70 @@
     <div class="modal-box">
         <div class="modal-title">THE WALL</div>
         <div class="input-group">
-            <label>Player 1 Name</label>
-            <input type="text" id="p1Input" value="Blue Team" maxlength="10">
+            <label>Player 1 (Blue)</label>
+            <input type="text" id="p1Input" value="Blue Team" maxlength="12">
         </div>
         <div class="input-group">
-            <label>Player 2 Name</label>
-            <input type="text" id="p2Input" value="Pink Team" maxlength="10">
+            <label>Player 2 (Pink)</label>
+            <input type="text" id="p2Input" value="Pink Team" maxlength="12">
         </div>
-        <button class="start-btn" onclick="startGame()">START MATCH</button>
+        <button class="start-btn" onclick="startGame()">ENTER STUDIO</button>
     </div>
 </div>
 
-<!-- CONTROLS (LEFT SIDE) -->
+<!-- LEFT: CONTROLS -->
 <div id="control-panel">
     <div class="panel-header">
         <h2>CONTROLS</h2>
     </div>
 
-    <!-- Zone Selector -->
     <div class="control-group">
         <div class="group-label">
-            <span>Select Zones</span>
-            <span id="ballCount" style="color:white">0/3</span>
+            <span>Drop Zones</span>
+            <span id="ballCount" style="color:var(--neon-blue)">0/3</span>
         </div>
         <div class="slots-grid" id="slotsContainer"></div>
     </div>
 
-    <!-- Actions -->
     <div class="control-group">
-        <div class="group-label">Reveal Result</div>
+        <div class="group-label">Reveal Outcome</div>
         <div class="btn-row">
             <button class="action-btn btn-green" id="btnGreen" onclick="triggerDrop('green')">CORRECT</button>
             <button class="action-btn btn-red" id="btnRed" onclick="triggerDrop('red')">WRONG</button>
         </div>
     </div>
 
-    <!-- Log -->
-    <div class="group-label" style="margin-top: 20px;">Transaction Log</div>
+    <div class="group-label" style="margin-top: 30px;">Event Log</div>
     <div class="log-box" id="gameLog">
-        <div style="text-align:center; padding-top:20px;">Waiting for drop...</div>
+        <div style="text-align:center; padding-top:20px; color:#444">Waiting for drop...</div>
     </div>
 
-    <button class="reset-btn" onclick="resetGame()">RESET MATCH</button>
+    <button class="reset-btn" onclick="resetGame()">System Reset</button>
 </div>
 
-<!-- GAME STAGE (RIGHT SIDE) -->
-<div id="game-stage">
-    <canvas id="wallCanvas"></canvas>
+<!-- RIGHT: GAME AREA -->
+<div id="right-column">
     
-    <!-- UI OVERLAYS (Floating above canvas) -->
-    <div id="p1-box" class="score-box active">
-        <div class="p-label" id="name-0">PLAYER 1</div>
-        <div class="p-score" id="score-0">$0</div>
+    <!-- HEADER: SCORES (Safe Zone) -->
+    <div id="game-header">
+        <div class="team-display active" id="p1-display">
+            <div class="team-name" id="name-0">PLAYER 1</div>
+            <div class="team-score" id="score-0">$0</div>
+        </div>
+        
+        <!-- Center Logo or Spacer could go here -->
+        
+        <div class="team-display" id="p2-display">
+            <div class="team-name" id="name-1">PLAYER 2</div>
+            <div class="team-score" id="score-1">$0</div>
+        </div>
     </div>
 
-    <div id="p2-box" class="score-box">
-        <div class="p-label" id="name-1">PLAYER 2</div>
-        <div class="p-score" id="score-1">$0</div>
+    <!-- GAME CANVAS -->
+    <div id="game-stage">
+        <canvas id="wallCanvas"></canvas>
+        <div id="turn-popup">PLAYER 1 START</div>
     </div>
-
-    <div id="turn-popup">PLAYER 1 START</div>
 </div>
 
 <script>
@@ -342,14 +357,16 @@
     const ctx = canvas.getContext('2d');
     const stage = document.getElementById('game-stage');
 
-    // --- GAME CONFIG ---
+    // --- CONFIG ---
     const V_WIDTH = 1000;
     const V_HEIGHT = 1400; 
     let scale = 1;
 
+    // PHYSICS (Reverted to standard/heavier feel)
     const GRAVITY = 0.45;
-    const FRICTION = 0.98;
-    const RESTITUTION = 0.6;
+    const FRICTION = 0.98; // Reverted from 0.99
+    const RESTITUTION = 0.6; // Reverted from 0.55
+    
     const DROP_ZONES = 7;
     const BIN_VALUES = [1, 1000, 100, 2000, 10, 5000, 100, 10000, 1, 25000, 10, 50000, 100, 100000, 1];
 
@@ -383,33 +400,43 @@
             this.hovering = true;
             this.zoneId = zoneId;
             this.color = 'white';
+            // Trails removed
         }
 
         update() {
             if (!this.active || this.hovering) return;
+
+            // Physics
             this.vel.y += GRAVITY;
             this.vel = this.vel.mult(FRICTION);
             this.pos = this.pos.add(this.vel);
 
+            // Walls
             if (this.pos.x < this.radius) { this.pos.x = this.radius; this.vel.x *= -0.6; }
             if (this.pos.x > V_WIDTH - this.radius) { this.pos.x = V_WIDTH - this.radius; this.vel.x *= -0.6; }
 
+            // Pins
             for(let pin of pins) {
                 let dx = this.pos.x - pin.x;
                 let dy = this.pos.y - pin.y;
                 let distSq = dx*dx + dy*dy;
                 let minDist = this.radius + pin.r;
+                
                 if (distSq < minDist * minDist) {
                     let dist = Math.sqrt(distSq);
                     let normal = new Vector(dx/dist, dy/dist);
+                    // Standard chaos
                     let chaos = new Vector((Math.random()-0.5)*1.5, (Math.random()-0.5)*1.5);
+                    
                     let dot = this.vel.dot(normal);
                     let reflect = this.vel.sub(normal.mult(2 * dot));
+                    
                     this.vel = reflect.add(chaos).mult(RESTITUTION);
                     this.pos = this.pos.add(normal.mult(minDist - dist));
                 }
             }
 
+            // Bins
             if (this.pos.y > V_HEIGHT - 120) {
                 for(let bin of bins) {
                     if (this.pos.x > bin.x && this.pos.x < bin.x + bin.w) {
@@ -437,12 +464,13 @@
             ctx.shadowBlur = 20; ctx.shadowColor = glow; ctx.fillStyle = fill; ctx.fill();
             ctx.shadowBlur = 0;
             
+            // Simple highlight
             ctx.fillStyle = 'rgba(255,255,255,0.8)';
-            ctx.beginPath(); ctx.arc(this.pos.x - 4, this.pos.y - 4, 4, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(this.pos.x - 5, this.pos.y - 5, 5, 0, Math.PI*2); ctx.fill();
         }
     }
 
-    // --- GAMEPLAY ---
+    // --- GAME LOGIC ---
 
     function startGame() {
         const p1Name = document.getElementById('p1Input').value || "P1";
@@ -468,16 +496,19 @@
     function announceTurn() {
         const popup = document.getElementById('turn-popup');
         const name = players[currentPlayer].name;
+        const color = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
         
         popup.innerText = `${name}'S TURN`;
-        popup.style.color = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
-        popup.style.borderColor = currentPlayer === 0 ? 'var(--neon-blue)' : 'var(--neon-pink)';
-        popup.style.opacity = 1;
+        popup.style.color = color;
+        popup.style.borderColor = color;
+        popup.style.boxShadow = `0 0 30px ${color}`;
         
-        document.getElementById('p1-box').classList.toggle('active', currentPlayer === 0);
-        document.getElementById('p2-box').classList.toggle('active', currentPlayer === 1);
+        popup.classList.add('show');
+        
+        document.getElementById('p1-display').classList.toggle('active', currentPlayer === 0);
+        document.getElementById('p2-display').classList.toggle('active', currentPlayer === 1);
 
-        setTimeout(() => popup.style.opacity = 0, 1500);
+        setTimeout(() => popup.classList.remove('show'), 1500);
     }
 
     function switchTurn() {
@@ -514,9 +545,9 @@
             b.color = type;
             setTimeout(() => {
                 b.hovering = false;
-                b.vel.x = (Math.random()-0.5) * 5;
+                b.vel.x = (Math.random()-0.5) * 5; 
                 b.vel.y = 2;
-            }, i * 200);
+            }, i * 250);
         });
 
         updateUI();
@@ -540,7 +571,7 @@
 
         floats.push({
             txt: symbol + "$" + shortNum(val),
-            x: x, y: y - 50, life: 1.0, 
+            x: x, y: y - 60, life: 1.0, 
             color: color
         });
         spawnParticles(x, y, type);
@@ -562,8 +593,9 @@
         location.reload(); 
     }
 
+    // --- RENDER ---
+
     function resize() {
-        // Critical Fix: Measure the stage, not the window
         const cw = stage.clientWidth;
         const ch = stage.clientHeight;
         const scaleX = cw / V_WIDTH;
@@ -595,31 +627,47 @@
 
     function loop() {
         ctx.clearRect(0,0,canvas.width, canvas.height);
+        
+        // Background Grid (Subtle)
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.03)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for(let i=0; i<canvas.width; i+=50) { ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); }
+        for(let i=0; i<canvas.height; i+=50) { ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); }
+        ctx.stroke();
+        ctx.restore();
+
         ctx.save();
         
-        const offsetX = (canvas.width - V_WIDTH * scale) / 2;
-        const offsetY = (canvas.height - V_HEIGHT * scale) / 2;
+        let offsetX = (canvas.width - V_WIDTH * scale) / 2;
+        let offsetY = (canvas.height - V_HEIGHT * scale) / 2;
         ctx.translate(offsetX, offsetY);
         ctx.scale(scale, scale);
 
+        // Bins
         bins.forEach(b => {
             let isGold = b.value >= 100000;
             let grad = ctx.createLinearGradient(0, b.y, 0, b.y + b.h);
             grad.addColorStop(0, isGold ? '#ffd700' : '#222');
             grad.addColorStop(1, isGold ? '#b8860b' : '#000');
-            ctx.fillStyle = grad; ctx.fillRect(b.x, b.y, b.w, b.h);
+            ctx.fillStyle = grad; 
+            ctx.fillRect(b.x+1, b.y, b.w-2, b.h);
             
-            ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.strokeRect(b.x, b.y, b.w, b.h);
+            ctx.strokeStyle = '#333'; ctx.lineWidth = 1; 
+            ctx.strokeRect(b.x, b.y, b.w, b.h);
             
-            ctx.fillStyle = isGold ? 'black' : '#666';
+            ctx.fillStyle = isGold ? 'black' : '#888';
             ctx.font = 'bold 20px Rajdhani'; ctx.textAlign = 'center';
             ctx.fillText(shortNum(b.value), b.x + b.w/2, b.y + 70);
         });
 
+        // Pins
         ctx.fillStyle = 'white'; ctx.shadowBlur = 4; ctx.shadowColor = 'white';
         pins.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); });
         ctx.shadowBlur = 0;
 
+        // Zones
         zones.forEach(z => {
             ctx.strokeStyle = 'rgba(0, 243, 255, 0.2)'; ctx.lineWidth = 1;
             ctx.strokeRect(z.x+5, z.y, z.w-10, z.h);
@@ -635,17 +683,19 @@
     }
 
     function drawFX(ctx) {
+        // Particles (Minimal)
         for(let i=particles.length-1; i>=0; i--) {
             let p = particles[i];
-            p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+            p.x += p.vx; p.y += p.vy; p.life -= 0.03;
             ctx.globalAlpha = Math.max(0, p.life);
-            ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3);
             ctx.globalAlpha = 1;
             if (p.life <= 0) particles.splice(i, 1);
         }
+        // Floats
         for(let i=floats.length-1; i>=0; i--) {
             let f = floats[i];
-            f.y -= 1.5; f.life -= 0.015;
+            f.y -= 2; f.life -= 0.015;
             ctx.globalAlpha = Math.max(0, f.life);
             ctx.fillStyle = f.color; ctx.font = '900 40px Orbitron';
             ctx.strokeStyle = 'black'; ctx.lineWidth = 4;
